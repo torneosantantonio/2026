@@ -523,13 +523,23 @@ async function setupAdminPage() {
     } else if (runningFileProtocol) {
       firebaseNote.textContent = "Attenzione: stai usando file:// — l'autenticazione Firebase potrebbe non funzionare. Servi il sito tramite localhost o https.";
     } else {
-        firebaseNote.textContent = "Usa il tuo nome utente e password per accedere e modificare i risultati.";
-    renderAdminMatches();
+      firebaseNote.textContent = "Usa il tuo nome utente e password per accedere e modificare i risultati.";
+    }
   }
+
+  renderAdminMatches();
 
   function showLogin() {
     panelBox.classList.add("hidden");
     loginBox.classList.remove("hidden");
+  }
+
+  function showPanel() {
+    loginBox.classList.add("hidden");
+    panelBox.classList.remove("hidden");
+    if (loginMsg) loginMsg.textContent = "";
+    if (firebaseNote && initializeFirebase()) firebaseNote.textContent = "Sei connesso come amministratore.";
+    renderAdminMatches();
   }
 
   if (firebaseEnabled) {
