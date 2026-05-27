@@ -5,6 +5,19 @@ let auth = null;
 let db = null;
 let firebaseReady = false;
 
+const ADMIN_USERNAME_EMAIL_SUFFIX = "@torneo-38d29.firebaseapp.com";
+const ADMIN_USERNAME_EMAIL_MAP = {
+  admin: `admin${ADMIN_USERNAME_EMAIL_SUFFIX}`,
+  // aggiungi altri username se necessario
+};
+
+function usernameToEmail(username) {
+  const normalized = (username || "").trim().toLowerCase();
+  if (!normalized) return "";
+  if (normalized.includes("@")) return normalized;
+  return ADMIN_USERNAME_EMAIL_MAP[normalized] || `${normalized}${ADMIN_USERNAME_EMAIL_SUFFIX}`;
+}
+
 // Squadre e calendario presi dalla locandina gironi.jpeg
 const TEAMS_DATA = [
   { name: "Mirabellarum Robur", group: "A", logo: "resources/logos/mirabellarum_robur.png", photo: "resources/images/mirabellarur_rorum.jpeg", players: ["Pierro Michele", "Macchiaverna Rocco", "Solimine Antonio", "Di Corcia Antonio", "De Angelis Antonio", "Lambarelli Christian", "Chinni Niccolò", "Lisi Pasquale"] },
@@ -104,15 +117,19 @@ function loadResultsLocally() {
 
 async function loadResultsFromFirestore() {
   if (!initializeFirebase()) {
-    return {};
+    return loadResultsLocally();
   }
   try {
     const docRef = db.collection("tournament").doc("results");
     const snapshot = await docRef.get();
-    return (snapshot.exists && snapshot.data().results) ? snapshot.data().results : {};
+    if (snapshot.exists && snapshot.data().results) {
+      return snapshot.data().results;
+    }
+    const localResults = loadResultsLocally();
+    return Object.keys(localResults).length ? localResults : {};
   } catch (error) {
     console.warn("Firestore load failed:", error);
-    return {};
+    return loadResultsLocally();
   }
 }
 
@@ -455,13 +472,7 @@ async function setupAdminPage() {
     } else if (runningFileProtocol) {
       firebaseNote.textContent = "Attenzione: stai usando file:// — l'autenticazione Firebase potrebbe non funzionare. Servi il sito tramite localhost o https.";
     } else {
-      firebaseNote.textContent = "Usa il tuo account Firebase (email) per accedere e modificare i risultati.";
-    }
-  }
-
-  function showPanel() {
-    loginBox.classList.add("hidden");
-    panelBox.classList.remove("hidden");
+        firebaseNote.textContent = "Usa il tuo nome utente e password per accedere e modificare i risultati.";
     renderAdminMatches();
   }
 
@@ -496,7 +507,8 @@ async function setupAdminPage() {
     }
 
     try {
-      await auth.signInWithEmailAndPassword(user, pass);
+      const email = usernameToEmail(user);
+      await auth.signInWithEmailAndPassword(email, pass);
       setAdminSession(true);
       loginMsg.textContent = "Accesso eseguito.";
       showPanel();
@@ -505,7 +517,7 @@ async function setupAdminPage() {
       console.warn('Login error:', error);
       const code = error && error.code ? error.code : 'unknown';
       const message = error && error.message ? error.message : 'Errore di autenticazione';
-      loginMsg.textContent = `Errore login: ${message} (${code}). Verifica email/password e che il provider Email/Password sia attivo in Firebase.`;
+      loginMsg.textContent = `Errore login: ${message} (${code}). Verifica nome utente/password e che il provider Email/Password sia attivo in Firebase.`;
       return;
     }
   });
