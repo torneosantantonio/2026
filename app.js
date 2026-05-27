@@ -23,7 +23,7 @@ function usernameToEmail(username) {
 
 // Squadre e calendario presi dalla locandina gironi.jpeg
 const TEAMS_DATA = [
-  { name: "Mirabellarum Robur", group: "A", logo: "resources/logos/mirabellarum_robur.png", photo: "resources/images/mirabellarur_rorum.jpeg", players: ["Pierro Michele", "Macchiaverna Rocco", "Solimine Antonio", "Di Corcia Antonio", "De Angelis Antonio", "Lambarelli Christian", "Chinni Niccolò", "Lisi Pasquale"] },
+  { name: "Mirabellarum Robur", group: "A", logo: "resources/logos/mirabellarum_robur.png", photo: "resources/images/mirabellarur_rorum.jpeg", players: ["Pierro Michele", "Macchiaverna Rocco", "Solimine Antonio", "Di Corcia Antonio", "De Angelis Antonio", "Lambarelli Christian", "Chinni Niccolò", "Lisi Pasquale", "Solimine E"] },
   { name: "Monteleone", group: "A", logo: "resources/logos/monteleone.png", photo: "resources/images/monteleone.jpeg", players: ["Addorisio Giuseppe", "Caggianiello Diego", "Pucillo Ivan", "Colangelo Fedele", "Labbate Giuliano", "Tarantino Raffaele", "Manserra Vincenzo", "Novia Giuseppe", "Santos Juanfran", "Mamadou Sabaly", "Lamanna Antonio", "Grosso Mario"] },
   { name: "RP Team", group: "A", logo: "resources/logos/rp_team.png", photo: "resources/images/rp_team.jpeg", players: ["Nasser Eddine Mohamed", "Manserra Leonardo", "Andriuh Yhiuan", "Pucillo Angelo", "Postiglione Giuseppe", "Eddine Ali Nasser", "Lorizzo Michele", "Labriola Michele", "Ramadan Shehab", "Moshodi Farouk", "Ahmed Fares", "Hanafi Momen"] },
   { name: "FC Orsa Maggiore", group: "A", logo: "resources/logos/fc_orsa_maggiore.png", photo: "resources/images/fc_orsa_maggiore.jpeg", players: ["Tounkara Adama", "Sidibe Fakouly", "Kone Oumar", "Jaiteh Foday", "Sidibe Yoro", "Traore Nouha", "Sacko Basadio", "Sheikh Himel", "Hawlader Sanjit/Sohan", "Ebrima Gaye", "Bah Dawda", "Fadiga Fode"] },
@@ -844,9 +844,9 @@ async function renderAdminMatches() {
         playerRow.dataset.player = selected;
         playerRow.innerHTML = `
           <div class="player-name">${selected}</div>
-          <input type="number" min="0" value="0" data-player-goals placeholder="Gol" />
-          <input type="number" min="0" value="0" data-player-yellow placeholder="Gialli" />
-          <input type="number" min="0" value="0" data-player-red placeholder="Rossi" />
+          <input type="number" min="0" value="" data-player-goals placeholder="Gol" />
+          <input type="number" min="0" value="" data-player-yellow placeholder="Gialli" />
+          <input type="number" min="0" value="" data-player-red placeholder="Rossi" />
           <button type="button" class="remove-player">Rimuovi</button>
         `;
         const removeBtn = playerRow.querySelector(".remove-player");
@@ -871,9 +871,9 @@ async function renderAdminMatches() {
         playerRow.dataset.player = selected;
         playerRow.innerHTML = `
           <div class="player-name">${selected}</div>
-          <input type="number" min="0" value="0" data-player-goals placeholder="Gol" />
-          <input type="number" min="0" value="0" data-player-yellow placeholder="Gialli" />
-          <input type="number" min="0" value="0" data-player-red placeholder="Rossi" />
+          <input type="number" min="0" value="" data-player-goals placeholder="Gol" />
+          <input type="number" min="0" value="" data-player-yellow placeholder="Gialli" />
+          <input type="number" min="0" value="" data-player-red placeholder="Rossi" />
           <button type="button" class="remove-player">Rimuovi</button>
         `;
         const removeBtn = playerRow.querySelector(".remove-player");
