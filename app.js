@@ -537,6 +537,34 @@ function renderPlayerSelectOptions(teamName, results) {
   });
 }
 
+function fillMatchPlayerSelect(row, matchId, side, teamName, results) {
+  const select = row.querySelector(`select[data-match="${matchId}"][data-side="${side}"]`);
+  if (!select) return;
+  select.innerHTML = "";
+  const teamData = TEAMS_DATA.find((t) => t.name === teamName);
+  if (!teamData) return;
+  teamData.players.forEach((player) => {
+    const stats = getPlayerStats(results, player);
+    const option = document.createElement("option");
+    option.value = player;
+    option.textContent = `${player} (${stats.goals}g ${stats.redCards}r ${stats.yellowCards}y)`;
+    select.appendChild(option);
+  });
+}
+
+function populateMatchPlayerStats(row, matchId, side, results) {
+  const select = row.querySelector(`select[data-match="${matchId}"][data-side="${side}"]`);
+  if (!select) return;
+  const playerName = select.value;
+  const stats = getPlayerStats(results, playerName);
+  const goalsInput = row.querySelector(`input[data-match="${matchId}"][data-player-input="goals"][data-side="${side}"]`);
+  const yellowInput = row.querySelector(`input[data-match="${matchId}"][data-player-input="yellow"][data-side="${side}"]`);
+  const redInput = row.querySelector(`input[data-match="${matchId}"][data-player-input="red"][data-side="${side}"]`);
+  if (goalsInput) goalsInput.value = stats.goals;
+  if (yellowInput) yellowInput.value = stats.yellowCards;
+  if (redInput) redInput.value = stats.redCards;
+}
+
 function populatePlayerStatsForm(playerName, results) {
   const stats = getPlayerStats(results, playerName);
   const goalsInput = document.getElementById("player-goals");
@@ -683,9 +711,57 @@ async function renderAdminMatches() {
           <input type="number" min="0" value="${result.awayYellowCards}" data-match="${match.id}" data-cards="awayYellow" placeholder="N.">
         </div>
       </div>
+      <div class="score-grid" style="margin-top: 0.75rem; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem;">
+        <div>
+          <label>${match.home} - Calciatore</label>
+          <select data-match="${match.id}" data-side="home"></select>
+          <div class="score-grid" style="margin-top: 0.5rem; gap: 0.5rem;">
+            <div>
+              <label>Gol</label>
+              <input type="number" min="0" value="0" data-match="${match.id}" data-side="home" data-player-input="goals" placeholder="Gol">
+            </div>
+            <div>
+              <label>Gialli</label>
+              <input type="number" min="0" value="0" data-match="${match.id}" data-side="home" data-player-input="yellow" placeholder="Gialli">
+            </div>
+            <div>
+              <label>Rossi</label>
+              <input type="number" min="0" value="0" data-match="${match.id}" data-side="home" data-player-input="red" placeholder="Rossi">
+            </div>
+          </div>
+          <button type="button" data-save-player="${match.id}" data-side="home">Salva calciatore</button>
+        </div>
+        <div>
+          <label>${match.away} - Calciatore</label>
+          <select data-match="${match.id}" data-side="away"></select>
+          <div class="score-grid" style="margin-top: 0.5rem; gap: 0.5rem;">
+            <div>
+              <label>Gol</label>
+              <input type="number" min="0" value="0" data-match="${match.id}" data-side="away" data-player-input="goals" placeholder="Gol">
+            </div>
+            <div>
+              <label>Gialli</label>
+              <input type="number" min="0" value="0" data-match="${match.id}" data-side="away" data-player-input="yellow" placeholder="Gialli">
+            </div>
+            <div>
+              <label>Rossi</label>
+              <input type="number" min="0" value="0" data-match="${match.id}" data-side="away" data-player-input="red" placeholder="Rossi">
+            </div>
+          </div>
+          <button type="button" data-save-player="${match.id}" data-side="away">Salva calciatore</button>
+        </div>
+      </div>
       <div class="status-msg" id="status-${match.id}"></div>
     `;
     adminMatches.appendChild(row);
+    fillMatchPlayerSelect(row, match.id, "home", match.home, results);
+    fillMatchPlayerSelect(row, match.id, "away", match.away, results);
+    populateMatchPlayerStats(row, match.id, "home", results);
+    populateMatchPlayerStats(row, match.id, "away", results);
+    const homeSelect = row.querySelector(`select[data-match="${match.id}"][data-side="home"]`);
+    const awaySelect = row.querySelector(`select[data-match="${match.id}"][data-side="away"]`);
+    if (homeSelect) homeSelect.onchange = () => populateMatchPlayerStats(row, match.id, "home", results);
+    if (awaySelect) awaySelect.onchange = () => populateMatchPlayerStats(row, match.id, "away", results);
   });
 
   adminMatches.querySelectorAll("button[data-save]").forEach((btn) => {
@@ -704,6 +780,25 @@ async function renderAdminMatches() {
       await renderStandingsIfPresent();
       await renderNextDayIfPresent();
       await renderAdminPlayerStats();
+    });
+  });
+
+  adminMatches.querySelectorAll("button[data-save-player]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.getAttribute("data-save-player");
+      const side = btn.getAttribute("data-side");
+      const row = btn.closest(".admin-match-row");
+      if (!row) return;
+      const playerSelect = row.querySelector(`select[data-match="${id}"][data-side="${side}"]`);
+      const goalsInput = row.querySelector(`input[data-match="${id}"][data-side="${side}"][data-player-input="goals"]`);
+      const yellowInput = row.querySelector(`input[data-match="${id}"][data-side="${side}"][data-player-input="yellow"]`);
+      const redInput = row.querySelector(`input[data-match="${id}"][data-side="${side}"][data-player-input="red"]`);
+      if (!playerSelect) return;
+      await upsertPlayerStats(playerSelect.value, goalsInput.value, yellowInput.value, redInput.value);
+      const status = document.getElementById(`status-${id}`);
+      status.textContent = `Statistiche ${playerSelect.value} aggiornate.`;
+      await renderAdminPlayerStats();
+      await renderPlayerRankingsIfPresent();
     });
   });
 }
