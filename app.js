@@ -515,8 +515,10 @@ async function setupAdminPage() {
   const adminMatches = document.getElementById("admin-matches");
   const logoutBtn = document.getElementById("logout-btn");
   const firebaseNote = document.getElementById("firebase-note");
+
   const firebaseEnabled = initializeFirebase();
   const runningFileProtocol = typeof location !== 'undefined' && location.protocol === 'file:';
+
   if (firebaseNote) {
     if (!firebaseEnabled) {
       firebaseNote.textContent = "Firebase non è configurato correttamente: l'accesso è disabilitato.";
@@ -527,8 +529,7 @@ async function setupAdminPage() {
     }
   }
 
-  renderAdminMatches();
-
+  // Helper to switch UI
   function showLogin() {
     panelBox.classList.add("hidden");
     loginBox.classList.remove("hidden");
@@ -542,7 +543,9 @@ async function setupAdminPage() {
     renderAdminMatches();
   }
 
-  if (firebaseEnabled) {
+  renderAdminMatches();
+
+  if (firebaseEnabled && auth && typeof auth.onAuthStateChanged === 'function') {
     auth.onAuthStateChanged((user) => {
       if (user) {
         setAdminSession(true);
@@ -554,53 +557,57 @@ async function setupAdminPage() {
     });
   } else {
     // Firebase non configurato: disabilita l'accesso amministrativo
-    loginForm.querySelectorAll("input,button").forEach((el) => (el.disabled = true));
+    if (loginForm) loginForm.querySelectorAll("input,button").forEach((el) => (el.disabled = true));
     showLogin();
   }
 
-  loginForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const user = document.getElementById("admin-user").value.trim();
-    const pass = document.getElementById("admin-pass").value;
-    if (!initializeFirebase()) {
-      loginMsg.textContent = "Firebase non è configurato: impossibile effettuare il login.";
-      return;
-    }
-
-    try {
-      const email = usernameToEmail(user);
-      await auth.signInWithEmailAndPassword(email, pass);
-      setAdminSession(true);
-      loginMsg.textContent = "Accesso eseguito.";
-      showPanel();
-      return;
-    } catch (error) {
-      console.warn('Login error:', error);
-      const code = error && error.code ? error.code : 'unknown';
-      let message = error && error.message ? error.message : 'Errore di autenticazione';
-      if (code === 'auth/invalid-email') {
-        message = "Email non valida. Controlla che il nome utente sia corretto.";
-      } else if (code === 'auth/user-not-found') {
-        message = "Utente non trovato. Verifica il nome utente.";
-      } else if (code === 'auth/wrong-password') {
-        message = "Password errata.";
+  if (loginForm) {
+    loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const user = document.getElementById("admin-user").value.trim();
+      const pass = document.getElementById("admin-pass").value;
+      if (!initializeFirebase()) {
+        if (loginMsg) loginMsg.textContent = "Firebase non è configurato: impossibile effettuare il login.";
+        return;
       }
-      loginMsg.textContent = `Errore login: ${message} (${code})`;
-      return;
-    }
-  });
 
-  logoutBtn.addEventListener("click", async () => {
-    if (initializeFirebase()) {
       try {
-        await auth.signOut();
+        const email = usernameToEmail(user);
+        await auth.signInWithEmailAndPassword(email, pass);
+        setAdminSession(true);
+        if (loginMsg) loginMsg.textContent = "Accesso eseguito.";
+        showPanel();
+        return;
       } catch (error) {
-        console.warn("Firebase sign out failed:", error);
+        console.warn('Login error:', error);
+        const code = error && error.code ? error.code : 'unknown';
+        let message = error && error.message ? error.message : 'Errore di autenticazione';
+        if (code === 'auth/invalid-email') {
+          message = "Email non valida. Controlla che il nome utente sia corretto.";
+        } else if (code === 'auth/user-not-found') {
+          message = "Utente non trovato. Verifica il nome utente.";
+        } else if (code === 'auth/wrong-password') {
+          message = "Password errata.";
+        }
+        if (loginMsg) loginMsg.textContent = `Errore login: ${message} (${code})`;
+        return;
       }
-    }
-    setAdminSession(false);
-    showLogin();
-  });
+    });
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      if (initializeFirebase()) {
+        try {
+          await auth.signOut();
+        } catch (error) {
+          console.warn("Firebase sign out failed:", error);
+        }
+      }
+      setAdminSession(false);
+      showLogin();
+    });
+  }
 }
 
 function setupResultsRealtimeSync() {
