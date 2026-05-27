@@ -483,7 +483,8 @@ label {
 }
 input[type="text"],
 input[type="password"],
-input[type="number"] {
+input[type="number"],
+select {
   width: 100%;
   border: 1px solid rgba(109, 165, 236, 0.58);
   border-radius: 10px;
@@ -491,6 +492,36 @@ input[type="number"] {
   color: #eef4ff;
   padding: 0.55rem 0.65rem;
   font: inherit;
+}
+.team-section {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+.team-section-title {
+  margin: 0 0 0.6rem;
+  font-weight: 700;
+}
+.team-row-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  align-items: start;
+}
+.team-player-adder {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: end;
+  margin-top: 0.8rem;
+}
+.team-player-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
 }
 button {
   border: 1px solid rgba(111, 175, 255, 0.55);

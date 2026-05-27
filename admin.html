@@ -56,38 +56,6 @@
         <p class="muted">Inserisci i gol per ogni partita e salva: la classifica pubblica si aggiorna automaticamente.</p>
         <div id="admin-matches"></div>
 
-        <div style="margin-top:1.5rem; border-top:1px solid rgba(0,0,0,0.1); padding-top:1.5rem;">
-          <h2 class="section-title">Statistiche calciatori</h2>
-          <p class="muted">Seleziona squadra e giocatore per aggiornare gol, cartellini gialli e rossi. Vengono mostrati solo i giocatori con statistiche modificate.</p>
-          <div class="form-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem;">
-            <div>
-              <label for="player-team">Squadra</label>
-              <select id="player-team"></select>
-            </div>
-            <div>
-              <label for="player-name">Calciatore</label>
-              <select id="player-name"></select>
-            </div>
-            <div>
-              <label for="player-goals">Gol</label>
-              <input id="player-goals" type="number" min="0" value="0" />
-            </div>
-            <div>
-              <label for="player-yellow">Gialli</label>
-              <input id="player-yellow" type="number" min="0" value="0" />
-            </div>
-            <div>
-              <label for="player-red">Rossi</label>
-              <input id="player-red" type="number" min="0" value="0" />
-            </div>
-            <div style="display:flex; align-items:flex-end;">
-              <button id="player-stats-save" type="button">Salva statistica</button>
-            </div>
-          </div>
-          <div id="player-stats-status" class="status-msg"></div>
-          <div id="player-stats-list"></div>
-        </div>
-
         <button id="logout-btn" type="button" style="margin-top:1rem;">Esci area admin</button>
       </section>
     </main>

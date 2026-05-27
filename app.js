@@ -226,7 +226,7 @@ async function upsertPlayerStats(playerName, goals, yellowCards, redCards) {
   await saveResults(results);
 }
 
-async function upsertResult(matchId, homeGoals, awayGoals, homeRedCards = 0, homeYellowCards = 0, awayRedCards = 0, awayYellowCards = 0) {
+async function upsertResult(matchId, homeGoals, awayGoals, homeRedCards = 0, homeYellowCards = 0, awayRedCards = 0, awayYellowCards = 0, playerEvents = { home: [], away: [] }) {
   const current = await loadResults();
   if (homeGoals === "" || awayGoals === "") {
     delete current[matchId];
@@ -238,9 +238,53 @@ async function upsertResult(matchId, homeGoals, awayGoals, homeRedCards = 0, hom
       homeYellowCards: Number(homeYellowCards) || 0,
       awayRedCards: Number(awayRedCards) || 0,
       awayYellowCards: Number(awayYellowCards) || 0,
+      playerEvents: {
+        home: Array.isArray(playerEvents.home) ? playerEvents.home : [],
+        away: Array.isArray(playerEvents.away) ? playerEvents.away : [],
+      },
     };
   }
+  current.playerStats = computeGlobalPlayerStats(current);
   await saveResults(current);
+}
+
+function computeGlobalPlayerStats(results) {
+  const playerStats = {};
+  if (!results || typeof results !== 'object') return playerStats;
+  MATCHES.forEach((match) => {
+    const res = results[match.id];
+    if (!res || !res.playerEvents) return;
+    ["home", "away"].forEach((side) => {
+      (res.playerEvents[side] || []).forEach((event) => {
+        if (!event || !event.player) return;
+        const player = event.player;
+        if (!playerStats[player]) {
+          playerStats[player] = { goals: 0, yellowCards: 0, redCards: 0 };
+        }
+        playerStats[player].goals += Number(event.goals) || 0;
+        playerStats[player].yellowCards += Number(event.yellowCards) || 0;
+        playerStats[player].redCards += Number(event.redCards) || 0;
+      });
+    });
+  });
+  return playerStats;
+}
+
+function getMatchPlayerEvents(results, matchId, side) {
+  if (!results || !results[matchId] || !results[matchId].playerEvents) return [];
+  return Array.isArray(results[matchId].playerEvents[side]) ? results[matchId].playerEvents[side] : [];
+}
+
+function getMatchResult(results, matchId) {
+  return results[matchId] || {
+    homeGoals: "",
+    awayGoals: "",
+    homeRedCards: 0,
+    homeYellowCards: 0,
+    awayRedCards: 0,
+    awayYellowCards: 0,
+    playerEvents: { home: [], away: [] },
+  };
 }
 
 function getResultLabel(match, results) {
@@ -249,6 +293,69 @@ function getResultLabel(match, results) {
     return "Da giocare";
   }
   return `${result.homeGoals} - ${result.awayGoals}`;
+}
+
+function fillMatchPlayerSelect(row, matchId, side, teamName, results) {
+  const select = row.querySelector(`select[data-match="${matchId}"][data-side="${side}"][data-player-add]`);
+  if (!select) return;
+  select.innerHTML = "";
+  const teamData = TEAMS_DATA.find((t) => t.name === teamName);
+  if (!teamData) return;
+  const existing = new Set(
+    Array.from(row.querySelectorAll(`.team-player-list[data-match="${matchId}"][data-side="${side}"] .team-player-row`)).map((el) => el.dataset.player)
+  );
+  teamData.players.forEach((player) => {
+    if (existing.has(player)) return;
+    const option = document.createElement("option");
+    option.value = player;
+    option.textContent = player;
+    select.appendChild(option);
+  });
+  if (select.children.length === 0) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "Tutti i giocatori aggiunti";
+    select.appendChild(option);
+    select.disabled = true;
+  } else {
+    select.disabled = false;
+  }
+}
+
+function renderMatchPlayerList(row, matchId, side, teamName, results) {
+  const list = row.querySelector(`.team-player-list[data-match="${matchId}"][data-side="${side}"]`);
+  if (!list) return;
+  list.innerHTML = "";
+  const events = getMatchPlayerEvents(results, matchId, side);
+  events.forEach((event) => {
+    const playerRow = document.createElement("div");
+    playerRow.className = "team-player-row";
+    playerRow.dataset.player = event.player;
+    playerRow.innerHTML = `
+      <div class="player-name">${event.player}</div>
+      <input type="number" min="0" value="${event.goals || 0}" data-player-goals placeholder="Gol" />
+      <input type="number" min="0" value="${event.yellowCards || 0}" data-player-yellow placeholder="Gialli" />
+      <input type="number" min="0" value="${event.redCards || 0}" data-player-red placeholder="Rossi" />
+      <button type="button" class="remove-player">Rimuovi</button>
+    `;
+    const removeBtn = playerRow.querySelector(".remove-player");
+    if (removeBtn) {
+      removeBtn.addEventListener("click", () => {
+        playerRow.remove();
+        fillMatchPlayerSelect(row, matchId, side, teamName, results);
+      });
+    }
+    list.appendChild(playerRow);
+  });
+}
+
+function collectMatchPlayerEvents(row, matchId, side) {
+  return Array.from(row.querySelectorAll(`.team-player-list[data-match="${matchId}"][data-side="${side}"] .team-player-row`)).map((playerRow) => ({
+    player: playerRow.dataset.player,
+    goals: Number(playerRow.querySelector("[data-player-goals]")?.value) || 0,
+    yellowCards: Number(playerRow.querySelector("[data-player-yellow]")?.value) || 0,
+    redCards: Number(playerRow.querySelector("[data-player-red]")?.value) || 0,
+  }));
 }
 
 function computeStandings(results) {
@@ -677,78 +784,44 @@ async function renderAdminMatches() {
   MATCHES.filter((m) => m.editable !== false).forEach((match) => {
     const row = document.createElement("div");
     row.className = "admin-match-row";
-    const result = results[match.id] || { homeGoals: "", awayGoals: "", homeRedCards: 0, homeYellowCards: 0, awayRedCards: 0, awayYellowCards: 0 };
+    const result = getMatchResult(results, match.id);
     row.innerHTML = `
       <div class="admin-match-title">${match.date} ${match.time} · ${match.home} vs ${match.away}</div>
       <div class="score-grid">
         <div>
-          <label>${match.home}</label>
-          <input type="number" min="0" value="${result.homeGoals}" data-match="${match.id}" data-side="home" placeholder="Gol">
+          <label>${match.home} gol</label>
+          <input type="number" min="0" value="${result.homeGoals}" data-match="${match.id}" data-score="homeGoals" placeholder="Gol" />
         </div>
         <div>
-          <label>${match.away}</label>
-          <input type="number" min="0" value="${result.awayGoals}" data-match="${match.id}" data-side="away" placeholder="Gol">
+          <label>${match.away} gol</label>
+          <input type="number" min="0" value="${result.awayGoals}" data-match="${match.id}" data-score="awayGoals" placeholder="Gol" />
         </div>
-        <button type="button" data-save="${match.id}">Salva</button>
+        <button type="button" data-save="${match.id}">Salva incontro</button>
       </div>
-      <div class="score-grid" style="margin-top: 0.5rem;">
-        <div>
-          <label><span style="color: red;">● Rossi</span> ${match.home}</label>
-          <input type="number" min="0" value="${result.homeRedCards}" data-match="${match.id}" data-cards="homeRed" placeholder="N.">
-        </div>
-        <div>
-          <label><span style="color: #FFB81C;">● Gialli</span> ${match.home}</label>
-          <input type="number" min="0" value="${result.homeYellowCards}" data-match="${match.id}" data-cards="homeYellow" placeholder="N.">
-        </div>
-      </div>
-      <div class="score-grid" style="margin-top: 0.5rem;">
-        <div>
-          <label><span style="color: red;">● Rossi</span> ${match.away}</label>
-          <input type="number" min="0" value="${result.awayRedCards}" data-match="${match.id}" data-cards="awayRed" placeholder="N.">
-        </div>
-        <div>
-          <label><span style="color: #FFB81C;">● Gialli</span> ${match.away}</label>
-          <input type="number" min="0" value="${result.awayYellowCards}" data-match="${match.id}" data-cards="awayYellow" placeholder="N.">
-        </div>
-      </div>
-      <div class="score-grid" style="margin-top: 0.75rem; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem;">
-        <div>
-          <label>${match.home} - Calciatore</label>
-          <select data-match="${match.id}" data-side="home"></select>
-          <div class="score-grid" style="margin-top: 0.5rem; gap: 0.5rem;">
-            <div>
-              <label>Gol</label>
-              <input type="number" min="0" value="0" data-match="${match.id}" data-side="home" data-player-input="goals" placeholder="Gol">
-            </div>
-            <div>
-              <label>Gialli</label>
-              <input type="number" min="0" value="0" data-match="${match.id}" data-side="home" data-player-input="yellow" placeholder="Gialli">
-            </div>
-            <div>
-              <label>Rossi</label>
-              <input type="number" min="0" value="0" data-match="${match.id}" data-side="home" data-player-input="red" placeholder="Rossi">
-            </div>
+      <div class="team-row-grid">
+        <div class="team-section">
+          <div class="team-section-title">${match.home}</div>
+          <label>Rossi ${match.home}</label>
+          <input type="number" min="0" value="${result.homeRedCards}" data-match="${match.id}" data-cards="homeRed" placeholder="Rossi" />
+          <label>Gialli ${match.home}</label>
+          <input type="number" min="0" value="${result.homeYellowCards}" data-match="${match.id}" data-cards="homeYellow" placeholder="Gialli" />
+          <div class="team-player-adder">
+            <select data-match="${match.id}" data-side="home" data-player-add></select>
+            <button type="button" data-add-player="${match.id}" data-side="home">Aggiungi calciatore</button>
           </div>
-          <button type="button" data-save-player="${match.id}" data-side="home">Salva calciatore</button>
+          <div class="team-player-list" data-match="${match.id}" data-side="home"></div>
         </div>
-        <div>
-          <label>${match.away} - Calciatore</label>
-          <select data-match="${match.id}" data-side="away"></select>
-          <div class="score-grid" style="margin-top: 0.5rem; gap: 0.5rem;">
-            <div>
-              <label>Gol</label>
-              <input type="number" min="0" value="0" data-match="${match.id}" data-side="away" data-player-input="goals" placeholder="Gol">
-            </div>
-            <div>
-              <label>Gialli</label>
-              <input type="number" min="0" value="0" data-match="${match.id}" data-side="away" data-player-input="yellow" placeholder="Gialli">
-            </div>
-            <div>
-              <label>Rossi</label>
-              <input type="number" min="0" value="0" data-match="${match.id}" data-side="away" data-player-input="red" placeholder="Rossi">
-            </div>
+        <div class="team-section">
+          <div class="team-section-title">${match.away}</div>
+          <label>Rossi ${match.away}</label>
+          <input type="number" min="0" value="${result.awayRedCards}" data-match="${match.id}" data-cards="awayRed" placeholder="Rossi" />
+          <label>Gialli ${match.away}</label>
+          <input type="number" min="0" value="${result.awayYellowCards}" data-match="${match.id}" data-cards="awayYellow" placeholder="Gialli" />
+          <div class="team-player-adder">
+            <select data-match="${match.id}" data-side="away" data-player-add></select>
+            <button type="button" data-add-player="${match.id}" data-side="away">Aggiungi calciatore</button>
           </div>
-          <button type="button" data-save-player="${match.id}" data-side="away">Salva calciatore</button>
+          <div class="team-player-list" data-match="${match.id}" data-side="away"></div>
         </div>
       </div>
       <div class="status-msg" id="status-${match.id}"></div>
@@ -756,48 +829,85 @@ async function renderAdminMatches() {
     adminMatches.appendChild(row);
     fillMatchPlayerSelect(row, match.id, "home", match.home, results);
     fillMatchPlayerSelect(row, match.id, "away", match.away, results);
-    populateMatchPlayerStats(row, match.id, "home", results);
-    populateMatchPlayerStats(row, match.id, "away", results);
-    const homeSelect = row.querySelector(`select[data-match="${match.id}"][data-side="home"]`);
-    const awaySelect = row.querySelector(`select[data-match="${match.id}"][data-side="away"]`);
-    if (homeSelect) homeSelect.onchange = () => populateMatchPlayerStats(row, match.id, "home", results);
-    if (awaySelect) awaySelect.onchange = () => populateMatchPlayerStats(row, match.id, "away", results);
+    renderMatchPlayerList(row, match.id, "home", match.home, results);
+    renderMatchPlayerList(row, match.id, "away", match.away, results);
+    const homeAddButton = row.querySelector(`button[data-add-player="${match.id}"][data-side="home"]`);
+    const awayAddButton = row.querySelector(`button[data-add-player="${match.id}"][data-side="away"]`);
+    if (homeAddButton) {
+      homeAddButton.addEventListener("click", () => {
+        const select = row.querySelector(`select[data-match="${match.id}"][data-side="home"][data-player-add]`);
+        const selected = select?.value;
+        if (!selected) return;
+        const list = row.querySelector(`.team-player-list[data-match="${match.id}"][data-side="home"]`);
+        const playerRow = document.createElement("div");
+        playerRow.className = "team-player-row";
+        playerRow.dataset.player = selected;
+        playerRow.innerHTML = `
+          <div class="player-name">${selected}</div>
+          <input type="number" min="0" value="0" data-player-goals placeholder="Gol" />
+          <input type="number" min="0" value="0" data-player-yellow placeholder="Gialli" />
+          <input type="number" min="0" value="0" data-player-red placeholder="Rossi" />
+          <button type="button" class="remove-player">Rimuovi</button>
+        `;
+        const removeBtn = playerRow.querySelector(".remove-player");
+        if (removeBtn) {
+          removeBtn.addEventListener("click", () => {
+            playerRow.remove();
+            fillMatchPlayerSelect(row, match.id, "home", match.home, results);
+          });
+        }
+        list.appendChild(playerRow);
+        fillMatchPlayerSelect(row, match.id, "home", match.home, results);
+      });
+    }
+    if (awayAddButton) {
+      awayAddButton.addEventListener("click", () => {
+        const select = row.querySelector(`select[data-match="${match.id}"][data-side="away"][data-player-add]`);
+        const selected = select?.value;
+        if (!selected) return;
+        const list = row.querySelector(`.team-player-list[data-match="${match.id}"][data-side="away"]`);
+        const playerRow = document.createElement("div");
+        playerRow.className = "team-player-row";
+        playerRow.dataset.player = selected;
+        playerRow.innerHTML = `
+          <div class="player-name">${selected}</div>
+          <input type="number" min="0" value="0" data-player-goals placeholder="Gol" />
+          <input type="number" min="0" value="0" data-player-yellow placeholder="Gialli" />
+          <input type="number" min="0" value="0" data-player-red placeholder="Rossi" />
+          <button type="button" class="remove-player">Rimuovi</button>
+        `;
+        const removeBtn = playerRow.querySelector(".remove-player");
+        if (removeBtn) {
+          removeBtn.addEventListener("click", () => {
+            playerRow.remove();
+            fillMatchPlayerSelect(row, match.id, "away", match.away, results);
+          });
+        }
+        list.appendChild(playerRow);
+        fillMatchPlayerSelect(row, match.id, "away", match.away, results);
+      });
+    }
   });
 
   adminMatches.querySelectorAll("button[data-save]").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const id = btn.getAttribute("data-save");
-      const homeInput = adminMatches.querySelector(`input[data-match="${id}"][data-side="home"]`);
-      const awayInput = adminMatches.querySelector(`input[data-match="${id}"][data-side="away"]`);
-      const homeRedInput = adminMatches.querySelector(`input[data-match="${id}"][data-cards="homeRed"]`);
-      const homeYellowInput = adminMatches.querySelector(`input[data-match="${id}"][data-cards="homeYellow"]`);
-      const awayRedInput = adminMatches.querySelector(`input[data-match="${id}"][data-cards="awayRed"]`);
-      const awayYellowInput = adminMatches.querySelector(`input[data-match="${id}"][data-cards="awayYellow"]`);
-      await upsertResult(id, homeInput.value, awayInput.value, homeRedInput.value, homeYellowInput.value, awayRedInput.value, awayYellowInput.value);
+      const row = btn.closest(".admin-match-row");
+      if (!row) return;
+      const homeInput = row.querySelector(`input[data-match="${id}"][data-score="homeGoals"]`);
+      const awayInput = row.querySelector(`input[data-match="${id}"][data-score="awayGoals"]`);
+      const homeRedInput = row.querySelector(`input[data-match="${id}"][data-cards="homeRed"]`);
+      const homeYellowInput = row.querySelector(`input[data-match="${id}"][data-cards="homeYellow"]`);
+      const awayRedInput = row.querySelector(`input[data-match="${id}"][data-cards="awayRed"]`);
+      const awayYellowInput = row.querySelector(`input[data-match="${id}"][data-cards="awayYellow"]`);
+      const homeEvents = collectMatchPlayerEvents(row, id, "home");
+      const awayEvents = collectMatchPlayerEvents(row, id, "away");
+      await upsertResult(id, homeInput.value, awayInput.value, homeRedInput.value, homeYellowInput.value, awayRedInput.value, awayYellowInput.value, { home: homeEvents, away: awayEvents });
       const status = document.getElementById(`status-${id}`);
-      status.textContent = "Risultato aggiornato.";
+      status.textContent = "Incontro salvato.";
       await renderCalendarIfPresent();
       await renderStandingsIfPresent();
       await renderNextDayIfPresent();
-      await renderAdminPlayerStats();
-    });
-  });
-
-  adminMatches.querySelectorAll("button[data-save-player]").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const id = btn.getAttribute("data-save-player");
-      const side = btn.getAttribute("data-side");
-      const row = btn.closest(".admin-match-row");
-      if (!row) return;
-      const playerSelect = row.querySelector(`select[data-match="${id}"][data-side="${side}"]`);
-      const goalsInput = row.querySelector(`input[data-match="${id}"][data-side="${side}"][data-player-input="goals"]`);
-      const yellowInput = row.querySelector(`input[data-match="${id}"][data-side="${side}"][data-player-input="yellow"]`);
-      const redInput = row.querySelector(`input[data-match="${id}"][data-side="${side}"][data-player-input="red"]`);
-      if (!playerSelect) return;
-      await upsertPlayerStats(playerSelect.value, goalsInput.value, yellowInput.value, redInput.value);
-      const status = document.getElementById(`status-${id}`);
-      status.textContent = `Statistiche ${playerSelect.value} aggiornate.`;
-      await renderAdminPlayerStats();
       await renderPlayerRankingsIfPresent();
     });
   });
@@ -839,11 +949,9 @@ async function setupAdminPage() {
     if (loginMsg) loginMsg.textContent = "";
     if (firebaseNote && initializeFirebase()) firebaseNote.textContent = "Sei connesso come amministratore.";
     renderAdminMatches();
-    renderAdminPlayerStats();
   }
 
   renderAdminMatches();
-  await renderAdminPlayerStats();
 
   if (firebaseEnabled && auth && typeof auth.onAuthStateChanged === 'function') {
     auth.onAuthStateChanged((user) => {
@@ -860,9 +968,6 @@ async function setupAdminPage() {
     if (loginForm) loginForm.querySelectorAll("input,button").forEach((el) => (el.disabled = true));
     showLogin();
   }
-
-  const playerStatsSaveBtn = document.getElementById("player-stats-save");
-  const playerStatsStatus = document.getElementById("player-stats-status");
 
   if (loginForm) {
     loginForm.addEventListener("submit", async (event) => {
@@ -895,20 +1000,6 @@ async function setupAdminPage() {
         if (loginMsg) loginMsg.textContent = `Errore login: ${message} (${code})`;
         return;
       }
-    });
-  }
-
-  if (playerStatsSaveBtn) {
-    playerStatsSaveBtn.addEventListener("click", async () => {
-      const playerName = document.getElementById("player-name")?.value;
-      const goals = document.getElementById("player-goals")?.value || 0;
-      const yellow = document.getElementById("player-yellow")?.value || 0;
-      const red = document.getElementById("player-red")?.value || 0;
-      if (!playerName) return;
-      await upsertPlayerStats(playerName, goals, yellow, red);
-      if (playerStatsStatus) playerStatsStatus.textContent = "Statistiche calciatore aggiornate.";
-      await renderAdminPlayerStats();
-      await renderPlayerRankingsIfPresent();
     });
   }
 
