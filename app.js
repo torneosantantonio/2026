@@ -157,7 +157,7 @@ async function saveResults(results) {
   }
 }
 
-async function upsertResult(matchId, homeGoals, awayGoals) {
+async function upsertResult(matchId, homeGoals, awayGoals, homeRedCards = 0, homeYellowCards = 0, awayRedCards = 0, awayYellowCards = 0) {
   const current = await loadResults();
   if (homeGoals === "" || awayGoals === "") {
     delete current[matchId];
@@ -165,6 +165,10 @@ async function upsertResult(matchId, homeGoals, awayGoals) {
     current[matchId] = {
       homeGoals: Number(homeGoals),
       awayGoals: Number(awayGoals),
+      homeRedCards: Number(homeRedCards) || 0,
+      homeYellowCards: Number(homeYellowCards) || 0,
+      awayRedCards: Number(awayRedCards) || 0,
+      awayYellowCards: Number(awayYellowCards) || 0,
     };
   }
   await saveResults(current);
@@ -190,6 +194,8 @@ function computeStandings(results) {
       gf: 0,
       ga: 0,
       pts: 0,
+      redCards: 0,
+      yellowCards: 0,
     };
   });
 
@@ -209,6 +215,10 @@ function computeStandings(results) {
     home.ga += res.awayGoals;
     away.gf += res.awayGoals;
     away.ga += res.homeGoals;
+    home.redCards += res.homeRedCards || 0;
+    home.yellowCards += res.homeYellowCards || 0;
+    away.redCards += res.awayRedCards || 0;
+    away.yellowCards += res.awayYellowCards || 0;
 
     if (res.homeGoals > res.awayGoals) {
       home.win += 1;
@@ -240,7 +250,14 @@ async function renderNextDayIfPresent() {
   const list = document.getElementById("next-day-list");
   if (!list) return;
   list.innerHTML = "";
-  const nextMatches = MATCHES.slice(0, 3);
+  const results = await loadResults();
+  const nextMatches = MATCHES.filter(m => !results[m.id]).slice(0, 3);
+  if (nextMatches.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "Tutte le partite sono state giocate!";
+    list.appendChild(li);
+    return;
+  }
   nextMatches.forEach((match) => {
     const li = document.createElement("li");
     li.textContent = `${match.date} ${match.time} — ${match.home} vs ${match.away}`;
@@ -378,7 +395,9 @@ async function renderStandingsIfPresent() {
         <td>${row.loss}</td>
         <td>${row.gf}</td>
         <td>${row.ga}</td>
-        <td>${row.pts}</td>
+        <td><strong>${row.pts}</strong></td>
+        <td><span style="color: red; font-weight: bold;">${row.redCards}</span></td>
+        <td><span style="color: #FFB81C; font-weight: bold;">${row.yellowCards}</span></td>
       `;
       tbodyA.appendChild(tr);
     });
@@ -397,7 +416,9 @@ async function renderStandingsIfPresent() {
         <td>${row.loss}</td>
         <td>${row.gf}</td>
         <td>${row.ga}</td>
-        <td>${row.pts}</td>
+        <td><strong>${row.pts}</strong></td>
+        <td><span style="color: red; font-weight: bold;">${row.redCards}</span></td>
+        <td><span style="color: #FFB81C; font-weight: bold;">${row.yellowCards}</span></td>
       `;
       tbodyB.appendChild(tr);
     });
@@ -421,19 +442,39 @@ async function renderAdminMatches() {
   MATCHES.filter((m) => m.editable !== false).forEach((match) => {
     const row = document.createElement("div");
     row.className = "admin-match-row";
-    const result = results[match.id] || { homeGoals: "", awayGoals: "" };
+    const result = results[match.id] || { homeGoals: "", awayGoals: "", homeRedCards: 0, homeYellowCards: 0, awayRedCards: 0, awayYellowCards: 0 };
     row.innerHTML = `
       <div class="admin-match-title">${match.date} ${match.time} · ${match.home} vs ${match.away}</div>
       <div class="score-grid">
         <div>
           <label>${match.home}</label>
-          <input type="number" min="0" value="${result.homeGoals}" data-match="${match.id}" data-side="home">
+          <input type="number" min="0" value="${result.homeGoals}" data-match="${match.id}" data-side="home" placeholder="Gol">
         </div>
         <div>
           <label>${match.away}</label>
-          <input type="number" min="0" value="${result.awayGoals}" data-match="${match.id}" data-side="away">
+          <input type="number" min="0" value="${result.awayGoals}" data-match="${match.id}" data-side="away" placeholder="Gol">
         </div>
         <button type="button" data-save="${match.id}">Salva</button>
+      </div>
+      <div class="score-grid" style="margin-top: 0.5rem;">
+        <div>
+          <label><span style="color: red;">● Rossi</span> ${match.home}</label>
+          <input type="number" min="0" value="${result.homeRedCards}" data-match="${match.id}" data-cards="homeRed" placeholder="N.">
+        </div>
+        <div>
+          <label><span style="color: #FFB81C;">● Gialli</span> ${match.home}</label>
+          <input type="number" min="0" value="${result.homeYellowCards}" data-match="${match.id}" data-cards="homeYellow" placeholder="N.">
+        </div>
+      </div>
+      <div class="score-grid" style="margin-top: 0.5rem;">
+        <div>
+          <label><span style="color: red;">● Rossi</span> ${match.away}</label>
+          <input type="number" min="0" value="${result.awayRedCards}" data-match="${match.id}" data-cards="awayRed" placeholder="N.">
+        </div>
+        <div>
+          <label><span style="color: #FFB81C;">● Gialli</span> ${match.away}</label>
+          <input type="number" min="0" value="${result.awayYellowCards}" data-match="${match.id}" data-cards="awayYellow" placeholder="N.">
+        </div>
       </div>
       <div class="status-msg" id="status-${match.id}"></div>
     `;
@@ -445,11 +486,16 @@ async function renderAdminMatches() {
       const id = btn.getAttribute("data-save");
       const homeInput = adminMatches.querySelector(`input[data-match="${id}"][data-side="home"]`);
       const awayInput = adminMatches.querySelector(`input[data-match="${id}"][data-side="away"]`);
-      await upsertResult(id, homeInput.value, awayInput.value);
+      const homeRedInput = adminMatches.querySelector(`input[data-match="${id}"][data-cards="homeRed"]`);
+      const homeYellowInput = adminMatches.querySelector(`input[data-match="${id}"][data-cards="homeYellow"]`);
+      const awayRedInput = adminMatches.querySelector(`input[data-match="${id}"][data-cards="awayRed"]`);
+      const awayYellowInput = adminMatches.querySelector(`input[data-match="${id}"][data-cards="awayYellow"]`);
+      await upsertResult(id, homeInput.value, awayInput.value, homeRedInput.value, homeYellowInput.value, awayRedInput.value, awayYellowInput.value);
       const status = document.getElementById(`status-${id}`);
       status.textContent = "Risultato aggiornato.";
       await renderCalendarIfPresent();
       await renderStandingsIfPresent();
+      await renderNextDayIfPresent();
     });
   });
 }
@@ -516,8 +562,15 @@ async function setupAdminPage() {
     } catch (error) {
       console.warn('Login error:', error);
       const code = error && error.code ? error.code : 'unknown';
-      const message = error && error.message ? error.message : 'Errore di autenticazione';
-      loginMsg.textContent = `Errore login: ${message} (${code}). Verifica nome utente/password e che il provider Email/Password sia attivo in Firebase.`;
+      let message = error && error.message ? error.message : 'Errore di autenticazione';
+      if (code === 'auth/invalid-email') {
+        message = "Email non valida. Controlla che il nome utente sia corretto.";
+      } else if (code === 'auth/user-not-found') {
+        message = "Utente non trovato. Verifica il nome utente.";
+      } else if (code === 'auth/wrong-password') {
+        message = "Password errata.";
+      }
+      loginMsg.textContent = `Errore login: ${message} (${code})`;
       return;
     }
   });
