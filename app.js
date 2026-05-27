@@ -12,9 +12,12 @@ const ADMIN_USERNAME_EMAIL_MAP = {
 };
 
 function usernameToEmail(username) {
-  const normalized = (username || "").trim().toLowerCase();
+  let normalized = (username || "").trim().toLowerCase();
   if (!normalized) return "";
+  // if user provided a full email, return it (after trimming)
   if (normalized.includes("@")) return normalized;
+  // sanitize username: replace spaces with dots and remove invalid characters for email local-part
+  normalized = normalized.replace(/\s+/g, '.').replace(/[^a-z0-9._-]/g, '');
   return ADMIN_USERNAME_EMAIL_MAP[normalized] || `${normalized}${ADMIN_USERNAME_EMAIL_SUFFIX}`;
 }
 
@@ -376,7 +379,9 @@ async function renderStandingsIfPresent() {
         <td>${row.loss}</td>
         <td>${row.gf}</td>
         <td>${row.ga}</td>
-        <td>${row.pts}</td>
+        <td><strong>${row.pts}</strong></td>
+        <td><span style="color: red; font-weight: bold;">${row.redCards}</span></td>
+        <td><span style="color: #FFB81C; font-weight: bold;">${row.yellowCards}</span></td>
       `;
       oldTbody.appendChild(tr);
     });
