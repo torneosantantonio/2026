@@ -106,15 +106,25 @@ function initializeFirebase() {
   }
 }
 
+function normalizeResultsData(results) {
+  if (!results || typeof results !== 'object') {
+    results = {};
+  }
+  if (!results.playerStats || typeof results.playerStats !== 'object') {
+    results.playerStats = {};
+  }
+  return results;
+}
+
 function loadResultsLocally() {
   const raw = localStorage.getItem(STORAGE_MATCH_RESULTS_KEY);
   if (!raw) {
-    return {};
+    return normalizeResultsData({});
   }
   try {
-    return JSON.parse(raw) || {};
+    return normalizeResultsData(JSON.parse(raw) || {});
   } catch {
-    return {};
+    return normalizeResultsData({});
   }
 }
 
@@ -126,10 +136,10 @@ async function loadResultsFromFirestore() {
     const docRef = db.collection("tournament").doc("results");
     const snapshot = await docRef.get();
     if (snapshot.exists && snapshot.data().results) {
-      return snapshot.data().results;
+      return normalizeResultsData(snapshot.data().results);
     }
     const localResults = loadResultsLocally();
-    return Object.keys(localResults).length ? localResults : {};
+    return Object.keys(localResults).length ? localResults : normalizeResultsData({});
   } catch (error) {
     console.warn("Firestore load failed:", error);
     return loadResultsLocally();
@@ -148,6 +158,10 @@ function saveResultsLocally(results) {
 }
 
 async function saveResults(results) {
+  if (!results || typeof results !== 'object') {
+    results = {};
+  }
+  results = normalizeResultsData(results);
   if (initializeFirebase()) {
     try {
       await db.collection("tournament").doc("results").set({ results });
@@ -158,6 +172,58 @@ async function saveResults(results) {
   } else {
     saveResultsLocally(results);
   }
+}
+
+function getPlayerTeamName(playerName) {
+  const team = TEAMS_DATA.find((t) => (t.players || []).includes(playerName));
+  return team ? team.name : "";
+}
+
+function getPlayerStats(results, playerName) {
+  const stats = (results && results.playerStats && results.playerStats[playerName]) || {};
+  return {
+    goals: Number(stats.goals) || 0,
+    yellowCards: Number(stats.yellowCards) || 0,
+    redCards: Number(stats.redCards) || 0,
+  };
+}
+
+function computePlayerRanking(results) {
+  const playerStats = (results && results.playerStats) || {};
+  return Object.entries(playerStats)
+    .map(([player, stats]) => ({
+      player,
+      team: getPlayerTeamName(player),
+      goals: Number(stats.goals) || 0,
+      yellowCards: Number(stats.yellowCards) || 0,
+      redCards: Number(stats.redCards) || 0,
+    }))
+    .filter((row) => row.goals || row.yellowCards || row.redCards)
+    .filter((row) => row.team)
+    .sort((a, b) => {
+      if (b.goals !== a.goals) return b.goals - a.goals;
+      if (a.redCards !== b.redCards) return a.redCards - b.redCards;
+      if (a.yellowCards !== b.yellowCards) return a.yellowCards - b.yellowCards;
+      return a.player.localeCompare(b.player);
+    });
+}
+
+async function upsertPlayerStats(playerName, goals, yellowCards, redCards) {
+  const results = await loadResults();
+  const parsedGoals = Number(goals) || 0;
+  const parsedYellow = Number(yellowCards) || 0;
+  const parsedRed = Number(redCards) || 0;
+  if (!playerName) return;
+  if (parsedGoals === 0 && parsedYellow === 0 && parsedRed === 0) {
+    delete results.playerStats[playerName];
+  } else {
+    results.playerStats[playerName] = {
+      goals: parsedGoals,
+      yellowCards: parsedYellow,
+      redCards: parsedRed,
+    };
+  }
+  await saveResults(results);
 }
 
 async function upsertResult(matchId, homeGoals, awayGoals, homeRedCards = 0, homeYellowCards = 0, awayRedCards = 0, awayYellowCards = 0) {
@@ -430,6 +496,142 @@ async function renderStandingsIfPresent() {
   }
 }
 
+async function renderPlayerRankingsIfPresent() {
+  const tbody = document.getElementById("player-rankings-body");
+  if (!tbody) return;
+  const rankings = computePlayerRanking(await loadResults());
+  tbody.innerHTML = "";
+  if (rankings.length === 0) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td colspan="5">Nessuna statistica giocatori inserita.</td>`;
+    tbody.appendChild(tr);
+    return;
+  }
+  rankings.forEach((row, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${row.player}</td>
+      <td>${row.team}</td>
+      <td>${row.goals}</td>
+      <td><span style="color: red; font-weight: bold;">${row.redCards}</span></td>
+      <td><span style="color: #FFB81C; font-weight: bold;">${row.yellowCards}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderPlayerSelectOptions(teamName, results) {
+  const playerSelect = document.getElementById("player-name");
+  if (!playerSelect) return;
+  playerSelect.innerHTML = "";
+  const teamData = TEAMS_DATA.find((t) => t.name === teamName);
+  if (!teamData) return;
+  const currentStats = results.playerStats || {};
+  teamData.players.forEach((player) => {
+    const stats = getPlayerStats(results, player);
+    const option = document.createElement("option");
+    option.value = player;
+    option.textContent = `${player} (${stats.goals}g, ${stats.redCards}r, ${stats.yellowCards}y)`;
+    playerSelect.appendChild(option);
+  });
+}
+
+function populatePlayerStatsForm(playerName, results) {
+  const stats = getPlayerStats(results, playerName);
+  const goalsInput = document.getElementById("player-goals");
+  const yellowInput = document.getElementById("player-yellow");
+  const redInput = document.getElementById("player-red");
+  if (goalsInput) goalsInput.value = stats.goals;
+  if (yellowInput) yellowInput.value = stats.yellowCards;
+  if (redInput) redInput.value = stats.redCards;
+}
+
+async function renderAdminPlayerStats() {
+  const container = document.getElementById("player-stats-list");
+  const teamSelect = document.getElementById("player-team");
+  const results = await loadResults();
+  if (teamSelect) {
+    teamSelect.innerHTML = "";
+    TEAMS_DATA.forEach((team) => {
+      const option = document.createElement("option");
+      option.value = team.name;
+      option.textContent = `${team.name}`;
+      teamSelect.appendChild(option);
+    });
+    const firstTeam = teamSelect.value || (TEAMS_DATA[0] && TEAMS_DATA[0].name);
+    renderPlayerSelectOptions(firstTeam, results);
+  }
+  const playerSelect = document.getElementById("player-name");
+  if (playerSelect) {
+    playerSelect.onchange = () => {
+      populatePlayerStatsForm(playerSelect.value, results);
+    };
+    if (playerSelect.value) {
+      populatePlayerStatsForm(playerSelect.value, results);
+    }
+  }
+  if (teamSelect) {
+    teamSelect.onchange = () => {
+      renderPlayerSelectOptions(teamSelect.value, results);
+      const newPlayer = document.getElementById("player-name");
+      if (newPlayer) populatePlayerStatsForm(newPlayer.value, results);
+    };
+  }
+  if (container) {
+    const rankings = computePlayerRanking(results);
+    container.innerHTML = "";
+    if (rankings.length === 0) {
+      container.innerHTML = `<p class="muted">Nessuna statistica giocatori modificata.</p>`;
+      return;
+    }
+    const table = document.createElement("table");
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th>Pos.</th>
+          <th>Calciatore</th>
+          <th>Squadra</th>
+          <th>Gol</th>
+          <th style="color: red;">●</th>
+          <th style="color: #FFB81C;">●</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `;
+    const tbody = table.querySelector("tbody");
+    rankings.forEach((row, index) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${row.player}</td>
+        <td>${row.team}</td>
+        <td>${row.goals}</td>
+        <td><span style="color: red; font-weight: bold;">${row.redCards}</span></td>
+        <td><span style="color: #FFB81C; font-weight: bold;">${row.yellowCards}</span></td>
+        <td><button type="button" data-player="${row.player}">Modifica</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+    container.appendChild(table);
+    container.querySelectorAll("button[data-player]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const playerName = btn.getAttribute("data-player");
+        const teamName = getPlayerTeamName(playerName);
+        const teamSelectEl = document.getElementById("player-team");
+        if (teamSelectEl) teamSelectEl.value = teamName;
+        renderPlayerSelectOptions(teamName, results);
+        const playerSelectEl = document.getElementById("player-name");
+        if (playerSelectEl) {
+          playerSelectEl.value = playerName;
+          populatePlayerStatsForm(playerName, results);
+        }
+      });
+    });
+  }
+}
+
 function isAdminLogged() {
   if (!initializeFirebase()) return false;
   return auth && auth.currentUser !== null;
@@ -501,6 +703,7 @@ async function renderAdminMatches() {
       await renderCalendarIfPresent();
       await renderStandingsIfPresent();
       await renderNextDayIfPresent();
+      await renderAdminPlayerStats();
     });
   });
 }
@@ -541,9 +744,11 @@ async function setupAdminPage() {
     if (loginMsg) loginMsg.textContent = "";
     if (firebaseNote && initializeFirebase()) firebaseNote.textContent = "Sei connesso come amministratore.";
     renderAdminMatches();
+    renderAdminPlayerStats();
   }
 
   renderAdminMatches();
+  await renderAdminPlayerStats();
 
   if (firebaseEnabled && auth && typeof auth.onAuthStateChanged === 'function') {
     auth.onAuthStateChanged((user) => {
@@ -560,6 +765,9 @@ async function setupAdminPage() {
     if (loginForm) loginForm.querySelectorAll("input,button").forEach((el) => (el.disabled = true));
     showLogin();
   }
+
+  const playerStatsSaveBtn = document.getElementById("player-stats-save");
+  const playerStatsStatus = document.getElementById("player-stats-status");
 
   if (loginForm) {
     loginForm.addEventListener("submit", async (event) => {
@@ -595,6 +803,20 @@ async function setupAdminPage() {
     });
   }
 
+  if (playerStatsSaveBtn) {
+    playerStatsSaveBtn.addEventListener("click", async () => {
+      const playerName = document.getElementById("player-name")?.value;
+      const goals = document.getElementById("player-goals")?.value || 0;
+      const yellow = document.getElementById("player-yellow")?.value || 0;
+      const red = document.getElementById("player-red")?.value || 0;
+      if (!playerName) return;
+      await upsertPlayerStats(playerName, goals, yellow, red);
+      if (playerStatsStatus) playerStatsStatus.textContent = "Statistiche calciatore aggiornate.";
+      await renderAdminPlayerStats();
+      await renderPlayerRankingsIfPresent();
+    });
+  }
+
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
       if (initializeFirebase()) {
@@ -613,13 +835,15 @@ async function setupAdminPage() {
 function setupResultsRealtimeSync() {
   const hasCalendar = !!document.getElementById("calendar-container") || !!document.getElementById("calendar-body");
   const hasStandings = !!document.getElementById("standings-body-a") || !!document.getElementById("standings-body-b") || !!document.getElementById("standings-body");
-  if (!hasCalendar && !hasStandings) return;
+  const hasPlayerRanking = !!document.getElementById("player-rankings-body");
+  if (!hasCalendar && !hasStandings && !hasPlayerRanking) return;
   if (!initializeFirebase() || !db || typeof db.collection !== "function") return;
 
   db.collection("tournament").doc("results").onSnapshot(
     async () => {
       if (hasCalendar) await renderCalendarIfPresent();
       if (hasStandings) await renderStandingsIfPresent();
+      if (hasPlayerRanking) await renderPlayerRankingsIfPresent();
     },
     (error) => {
       console.warn("Realtime standings/calendar sync failed:", error);
@@ -630,6 +854,7 @@ function setupResultsRealtimeSync() {
 document.addEventListener("DOMContentLoaded", async () => {
   await renderCalendarIfPresent();
   await renderStandingsIfPresent();
+  await renderPlayerRankingsIfPresent();
   await renderNextDayIfPresent();
   await renderTeamsIfPresent();
   await setupAdminPage();
