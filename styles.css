@@ -446,6 +446,11 @@ a:hover {
 .panel-body table {
   min-width: 100%;
 }
+.panel-body table th:nth-child(9),
+.panel-body table td:nth-child(9) {
+  color: #78d26f;
+  font-weight: 700;
+}
 .cta-button {
   display: inline-flex;
   align-items: center;
@@ -518,11 +523,22 @@ select {
 }
 .team-player-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr auto;
   gap: 0.6rem;
   align-items: center;
   margin-bottom: 0.5rem;
 }
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 button {
   border: 1px solid rgba(111, 175, 255, 0.55);
   background: linear-gradient(180deg, rgba(25, 94, 190, 0.92), rgba(14, 59, 132, 0.92));
@@ -609,6 +625,27 @@ button:hover {
   /* Mobile adjustments to prevent horizontal overflow */
   .grid {
     grid-template-columns: 1fr;
+  }
+  .panel-body {
+    overflow-x: auto;
+  }
+  .panel-body table {
+    min-width: 720px;
+  }
+  .admin-match-row,
+  .team-section {
+    padding: 0.75rem 0.65rem;
+  }
+  .score-grid,
+  .team-row-grid {
+    grid-template-columns: 1fr;
+  }
+  .team-player-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .team-player-row button {
+    width: 100%;
   }
   .team-photo {
     width: 100%;
