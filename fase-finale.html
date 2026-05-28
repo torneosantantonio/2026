@@ -3,12 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Torneo di calcio a 5</title>
+    <title>Fase finale | Torneo di Sant'Antonio</title>
     <link rel="stylesheet" href="styles.css" />
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
+    <script defer src="app.js"></script>
   </head>
   <body>
     <header class="site-hero">
@@ -35,40 +36,14 @@
     </header>
 
     <main>
-      <section class="card hero-core">
-        <h2>Benvenuti al torneo</h2>
-        <p class="hero-info">In Bocca al Lupo a tutti i partecipanti!</p>
-        <div class="next-day-card">
-          <h3>Prossima giornata:</h3>
-          <ul id="next-day-list"></ul>
-        </div>
-
-        <div class="instagram-grid">
-          <article class="insta-card">
-            <h3>Partecipa al FantaTorneo</h3>
-            <div class="insta-embed">
-              <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/DY0J2TDja5f/?img_index=1" data-instgrm-version="14" style="background:#FFF; border:0; margin: 0 auto; max-width:540px; min-width:326px; padding:0; width:100%;">
-                <a href="https://www.instagram.com/p/DY0J2TDja5f/?img_index=1" target="_blank" rel="noopener noreferrer">Visualizza il post su Instagram</a>
-              </blockquote>
-            </div>
-          </article>
-          <article class="insta-card">
-            <h3>Guarda le foto del Torneo</h3>
-            <div class="insta-embed">
-              <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/DY4kVpSiKxo/?img_index=1" data-instgrm-version="14" style="background:#FFF; border:0; margin: 0 auto; max-width:540px; min-width:326px; padding:0; width:100%;">
-                <a href="https://www.instagram.com/p/DY4kVpSiKxo/?img_index=1" target="_blank" rel="noopener noreferrer">Visualizza il post su Instagram</a>
-              </blockquote>
-            </div>
-          </article>
+      <section class="panel final-phase-panel">
+        <div class="panel-header">Fase finale del torneo</div>
+        <div class="panel-body">
+          <p class="muted">La prima classificata di ogni girone salta direttamente in semifinale. Le posizioni dalla seconda alla quinta giocano due scontri interni al girone per decretare il vincente che raggiungerà le semifinali.</p>
+          <div id="final-phase-container"></div>
         </div>
       </section>
     </main>
-    <script defer src="app.js"></script>
-    <script async defer src="https://www.instagram.com/embed.js"></script>
-
-    <section class="disclaimer-section card">
-      <p>Il sito è in continua evoluzione, ci scusiamo per eventuali errori di visualizzazione, appena possibile verranno sistemati</p>
-    </section>
 
     <section class="bottom-info card">
       <p>Impianto Sportivo Mons. Guido Maria Casullo</p>
@@ -80,7 +55,6 @@
             <span class="name-with-logo"><img class="inline-logo" src="resources/logos/pro loco.png" alt="Logo Pro Loco" /><a class="entity-link" href="https://www.facebook.com/ProLocoMonteleoneDiPuglia" target="_blank" rel="noopener noreferrer">Pro Loco di Monteleone di Puglia</a></span>
           </p>
     </section>
-
     <footer>© 2026 Torneo di calcio a 5 - In onore di Sant'Antonio da Padova</footer>
   </body>
 </html>

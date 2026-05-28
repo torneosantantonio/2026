@@ -68,8 +68,8 @@ const MATCHES = [
   { id: "m17", date: "5 Giugno", time: "21:00", home: "Red Wolves", away: "HP", field: "Campo", group: "B" },
 
   // 6 Giugno
-  { id: "m18", date: "6 Giugno", time: "20:00", home: "Red Wolves", away: "RP Gold Team", field: "Campo", group: "B" },
-  { id: "m19", date: "6 Giugno", time: "21:00", home: "Team DR", away: "Monteleone", field: "Campo", group: "A" },
+  { id: "m18", date: "6 Giugno", time: "19:00", home: "Red Wolves", away: "RP Gold Team", field: "Campo", group: "B" },
+  { id: "m19", date: "6 Giugno", time: "20:00", home: "Team DR", away: "Monteleone", field: "Campo", group: "A" },
   { id: "m20", date: "6 Giugno", time: "21:00", home: "FC Orsa Maggiore", away: "Mirabellarum Robur", field: "Campo", group: "A" },
 ];
 
@@ -635,6 +635,101 @@ async function renderStandingsIfPresent() {
   }
 }
 
+function getGroupStandings(standings, group) {
+  return standings.filter((row) => {
+    const teamData = TEAMS_DATA.find((t) => t.name === row.team);
+    return teamData && teamData.group === group;
+  });
+}
+
+function areGroupStageMatchesComplete(results) {
+  return MATCHES.every((match) => {
+    const res = results[match.id];
+    return res && typeof res.homeGoals === "number" && typeof res.awayGoals === "number";
+  });
+}
+
+async function renderFinalPhaseIfPresent() {
+  const container = document.getElementById("final-phase-container");
+  if (!container) return;
+
+  const results = await loadResults();
+  const standings = computeStandings(results);
+  const groupA = getGroupStandings(standings, "A");
+  const groupB = getGroupStandings(standings, "B");
+  const phaseComplete = areGroupStageMatchesComplete(results);
+
+  const [a1, a2, a3, a4, a5] = groupA;
+  const [b1, b2, b3, b4, b5] = groupB;
+
+  const quarterA1 = phaseComplete ? `${a2?.team || "2° Girone A"} vs ${b5?.team || "5° Girone B"}` : "2° Girone A vs 5° Girone B";
+  const quarterA2 = phaseComplete ? `${a3?.team || "3° Girone A"} vs ${b4?.team || "4° Girone B"}` : "3° Girone A vs 4° Girone B";
+  const quarterB1 = phaseComplete ? `${b2?.team || "2° Girone B"} vs ${a5?.team || "5° Girone A"}` : "2° Girone B vs 5° Girone A";
+  const quarterB2 = phaseComplete ? `${b3?.team || "3° Girone B"} vs ${a4?.team || "4° Girone A"}` : "3° Girone B vs 4° Girone A";
+
+  const finalA1 = phaseComplete ? a1?.team || "1° Girone A" : "1° Girone A";
+  const finalB1 = phaseComplete ? b1?.team || "1° Girone B" : "1° Girone B";
+  container.innerHTML = `
+    <div class="final-bracket">
+      <!-- Column 1: top->down A1, A2, B1, B2 -->
+      <div class="bracket-node col-initial col-initial-down" style="grid-column:1; grid-row:1;">
+        <div class="match-date">Lunedì 8 Giugno Ore 20:00</div>
+        <span class="match-title">Spareggio A - Gara 1</span>
+        <strong>${quarterB1}</strong>
+      </div>
+      <div class="bracket-node col-initial col-initial-up" style="grid-column:1; grid-row:2;">
+        <div class="match-date">Martedì 9 Giugno Ore 20:00</div>
+        <span class="match-title">Spareggio A - Gara 2</span>
+        <strong>${quarterB2}</strong>
+      </div>
+      <div class="bracket-node col-initial col-initial-down" style="grid-column:1; grid-row:3;">
+        <div class="match-date">Lunedi 8 Giugno Ore 21:00</div>
+        <span class="match-title">Spareggio B - Gara 1</span>
+        <strong>${quarterA1}</strong>
+      </div>
+      <div class="bracket-node col-initial col-initial-up" style="grid-column:1; grid-row:4;">
+        <div class="match-date">Martedì 9 Giugno Ore 21:00</div>
+        <span class="match-title">Spareggio B - Gara 2</span>
+        <strong>${quarterA2}</strong>
+      </div>
+
+      <!-- Column 2: Spareggio finals centered between pairs -->
+      <div class="bracket-node col-playoff col-playoff-down" style="grid-column:2; grid-row:1 / 3;">
+        <div class="match-date">Mercoledì 10 Giugno Ore 20:00</div>
+        <span class="match-title">Spareggio A - Finale</span>
+        <strong>Vincente Gara 1 vs Vincente Gara 2</strong>
+      </div>
+      <div class="bracket-node col-playoff col-playoff-up" style="grid-column:2; grid-row:3 / 5;">
+        <div class="match-date">Mercoledì 10 Giugno Ore 21:00</div>
+        <span class="match-title">Spareggio B - Finale</span>
+        <strong>Vincente Gara 1 vs Vincente Gara 2</strong>
+      </div>
+
+      <!-- Column 3: Semifinali -->
+      <div class="bracket-node col-semi col-semi-down" style="grid-column:3; grid-row:2;">
+        <div class="match-date">Venerdì 12 Giugno Ore 20:00</div>
+        <span class="match-title">Semifinale 1</span>
+        <strong>${finalA1} vs Vincente Spareggio A</strong>
+      </div>
+      <div class="bracket-node col-semi col-semi-up" style="grid-column:3; grid-row:3;">
+        <div class="match-date">Venerdì 12 Giugno Ore 21:00</div>
+        <span class="match-title">Semifinale 2</span>
+        <strong>${finalB1} vs Vincente Spareggio B</strong>
+      </div>
+
+      <!-- Column 4: Finale centered between semifinals -->
+      <div class="bracket-node col-final final-node" style="grid-column:4; grid-row:2 / 4;">
+        <div class="match-date">Sabato 13 Giugno Ore 21:00</div>
+        <span class="match-title">Finale</span>
+        <strong>Vincente Semifinale 1 vs Vincente Semifinale 2</strong>
+      </div>
+    </div>
+    <div class="final-phase-notes">
+      ${phaseComplete ? "" : "<p class=\"muted\">Attendi il completamento di tutte le partite dei gironi per vedere i nomi definitivi delle squadre.</p>"}
+    </div>
+  `;
+}
+
 async function renderPlayerRankingsIfPresent() {
   const tbody = document.getElementById("player-rankings-body");
   if (!tbody) return;
@@ -1090,6 +1185,7 @@ function setupResultsRealtimeSync() {
 document.addEventListener("DOMContentLoaded", async () => {
   await renderCalendarIfPresent();
   await renderStandingsIfPresent();
+  await renderFinalPhaseIfPresent();
   await renderPlayerRankingsIfPresent();
   await renderNextDayIfPresent();
   await renderTeamsIfPresent();

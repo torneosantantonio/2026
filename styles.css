@@ -340,6 +340,45 @@ a:hover {
   color: #e9e0c4;
   font-weight: 500;
 }
+.instagram-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.4rem auto 0;
+  max-width: 960px;
+}
+.insta-card {
+  max-width: 520px;
+  margin: 0 auto;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(9,18,38,0.95), rgba(5,12,22,0.92));
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+.insta-card h3 {
+  margin: 0;
+  padding: 1rem 1rem 0.75rem;
+  font-size: 1.08rem;
+  color: #f4f1de;
+  background: linear-gradient(180deg, rgba(18, 68, 130, 0.95), rgba(12, 36, 86, 0.95));
+}
+.insta-embed {
+  padding: 1rem;
+}
+.insta-embed blockquote.instagram-media {
+  width: 100% !important;
+  margin: 0 auto !important;
+}
+.insta-embed iframe {
+  width: 100% !important;
+  min-height: 360px !important;
+}
+@media (max-width: 860px) {
+  .instagram-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .disclaimer-section {
   max-width: 880px;
   margin: 0 auto 1rem;
@@ -455,6 +494,235 @@ a:hover {
   font-weight: 700;
   color: #ffe39a;
 }
+
+.final-bracket {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  grid-template-rows: repeat(4, minmax(110px, auto));
+  gap: 1.2rem;
+  margin-top: 1.4rem;
+  align-items: center;
+  position: relative;
+}
+
+.bracket-column {
+  display: grid;
+  gap: 1rem;
+}
+
+.bracket-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 1.1rem 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 55px rgba(0, 0, 0, 0.24);
+  min-height: 120px;
+  color: #f8f4e8;
+}
+
+.bracket-start {
+  background: linear-gradient(180deg, rgba(63, 171, 223, 0.24), rgba(14, 28, 62, 0.96));
+  border-color: rgba(76, 194, 230, 0.35);
+}
+
+.bracket-middle {
+  background: linear-gradient(180deg, rgba(149, 96, 225, 0.22), rgba(19, 26, 61, 0.95));
+  border-color: rgba(186, 130, 255, 0.28);
+}
+
+/* Connectors: initial games (col 1 & 2) -> playoff finals (col 3) */
+.col-initial {
+  /* blue / teal for initial spareggio boxes */
+  background: linear-gradient(180deg, rgba(63, 171, 223, 0.24), rgba(14, 28, 62, 0.96));
+  border-color: rgba(76, 194, 230, 0.35);
+}
+
+.col-initial::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  width: 40px;
+  height: 2px;
+  background: rgba(255, 200, 87, 0.95);
+  transform-origin: left center;
+}
+
+.col-initial-down::after {
+  transform: translateY(0) rotate(45deg) translateX(6px);
+}
+
+.col-initial-up::after {
+  transform: translateY(0) rotate(-45deg) translateX(6px);
+}
+
+/* Playoff nodes (col 3) connect left to initial games and right to semifinals */
+.col-playoff {
+  /* purple for playoff boxes */
+  background: linear-gradient(180deg, rgba(149, 96, 225, 0.22), rgba(19, 26, 61, 0.95));
+  border-color: rgba(186, 130, 255, 0.28);
+}
+
+.col-playoff::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  width: 40px;
+  height: 2px;
+  background: rgba(255, 200, 87, 0.95);
+  transform-origin: right center;
+}
+.col-playoff-down::before {
+  transform: translateX(0) rotate(-45deg) translateX(-6px);
+}
+.col-playoff-up::before {
+  transform: translateX(0) rotate(45deg) translateX(-6px);
+}
+.col-playoff::after {
+  content: "";
+  position: absolute;
+  right: -18px;
+  top: 50%;
+  width: 18px;
+  height: 2px;
+  background: rgba(255, 200, 87, 0.95);
+}
+
+/* Semifinal nodes connect left from playoffs and right to final */
+.col-semi {
+  /* reuse purple for semifinals */
+  background: linear-gradient(180deg, rgba(149, 96, 225, 0.18), rgba(12, 20, 46, 0.95));
+  border-color: rgba(186, 130, 255, 0.22);
+}
+
+.col-semi::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  width: 40px;
+  height: 2px;
+  background: rgba(255, 200, 87, 0.95);
+  transform-origin: right center;
+}
+.col-semi-up::before {
+  transform: translateX(0) rotate(45deg) translateX(-6px);
+}
+.col-semi-down::before {
+  transform: translateX(0) rotate(-45deg) translateX(-6px);
+}
+.col-semi::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  width: 40px;
+  height: 2px;
+  background: rgba(255, 200, 87, 0.95);
+}
+
+/* Final node connects left from semifinals */
+.col-final {
+  /* gold for final */
+  background: linear-gradient(180deg, rgba(255, 216, 118, 0.16), rgba(36, 58, 82, 0.95));
+  border-color: rgba(255, 216, 118, 0.28);
+}
+
+.col-final::before {
+  content: "";
+  position: absolute;
+  left: -18px;
+  top: 50%;
+  width: 18px;
+  height: 2px;
+  background: rgba(255, 200, 87, 0.95);
+}
+
+/* Disabilita tutte le linee create con pseudo-elementi: */
+.col-initial::after,
+.col-playoff::before,
+.col-playoff::after,
+.col-semi::before,
+.col-semi::after,
+.col-final::before {
+  display: none !important;
+  content: none !important;
+}
+
+.bracket-node strong {
+  display: block;
+  margin-top: 0.65rem;
+  color: #fff;
+  line-height: 1.4;
+  font-size: 0.96rem;
+}
+
+.match-title {
+  display: block;
+  font-size: 0.9rem;
+  color: #a9c9ff;
+  margin-bottom: 0.35rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  width: 100%;
+}
+
+/* Date label above each match-title; user will edit these placeholders manually */
+.match-date {
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  text-align: center;
+}
+
+.final-node {
+  background: linear-gradient(180deg, rgba(255, 216, 118, 0.16), rgba(36, 58, 82, 0.95));
+  border-color: rgba(255, 216, 118, 0.28);
+}
+
+.final-phase-notes {
+  margin-top: 1.2rem;
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
+  background: rgba(8, 20, 38, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #d7dfe9;
+}
+
+/* Centra il testo delle regole nella panel-body e le note dopo il tabellone */
+.panel-body p.muted,
+.final-phase-notes {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.final-phase-notes p {
+  margin: 0;
+}
+
+@media (max-width: 1080px) {
+  .final-bracket {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    max-height: calc(100vh - 180px);
+    padding-right: 0.2rem;
+  }
+
+  .bracket-node::before,
+  .bracket-node::after {
+    display: none;
+  }
+}
+
 .calendar-admin-cta {
   margin-top: 1rem;
   display: flex;
