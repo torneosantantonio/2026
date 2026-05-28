@@ -45,7 +45,7 @@ const MATCHES = [
 
   // 28 Maggio
   { id: "m4", date: "28 Maggio", time: "20:00", home: "Monteleone", away: "RP Team", field: "Campo", group: "A" },
-  { id: "m5", date: "28 Maggio", time: "21:00", home: "Zetaquadro Bar", away: "Red Wolves", field: "Campo", group: "B" },
+  { id: "m5", date: "28 Maggio", time: "21:00", home: "Zetaquadro Bar", away: "HP", field: "Campo", group: "B" },
 
   // 29 Maggio
   { id: "m6", date: "29 Maggio", time: "19:00", home: "HP", away: "Bar in Piazza", field: "Campo", group: "B" },
@@ -59,7 +59,7 @@ const MATCHES = [
 
   // 4 Giugno
   { id: "m12", date: "4 Giugno", time: "19:00", home: "Bar in Piazza", away: "RP Gold Team", field: "Campo", group: "B" },
-  { id: "m13", date: "4 Giugno", time: "20:00", home: "Zetaquadro Bar", away: "HP", field: "Campo", group: "B" },
+  { id: "m13", date: "4 Giugno", time: "20:00", home: "Zetaquadro Bar", away: "Red Wolves", field: "Campo", group: "B" },
   { id: "m14", date: "4 Giugno", time: "21:00", home: "RP Team", away: "Team DR", field: "Campo", group: "A" },
 
   // 5 Giugno
@@ -1191,4 +1191,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   await renderTeamsIfPresent();
   await setupAdminPage();
   setupResultsRealtimeSync();
+
+  // Process Instagram embeds after DOM is ready
+  if (window.instgrm && window.instgrm.Embed && window.instgrm.Embed.process) {
+    window.instgrm.Embed.process();
+  }
 });
