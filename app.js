@@ -5,7 +5,7 @@ let auth = null;
 let db = null;
 let firebaseReady = false;
 
-const ADMIN_USERNAME_EMAIL_SUFFIX = "@torneo-38d29.firebaseapp.com";
+const ADMIN_USERNAME_EMAIL_SUFFIX = "@torneo.local";
 const ADMIN_USERNAME_EMAIL_MAP = {
   admin: `admin${ADMIN_USERNAME_EMAIL_SUFFIX}`,
   // aggiungi altri username se necessario
