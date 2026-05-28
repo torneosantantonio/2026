@@ -30,7 +30,7 @@ const TEAMS_DATA = [
   { name: "Team DR", group: "A", logo: "resources/logos/team_dr.png", photo: "resources/images/team_dr.jpg", players: ["Cardinale Lorenzo", "Riccio Carmelo", "Zevola Giacomo", "Chillo Raffaele", "Costanzo Nicola", "Luzzi Leonardo", "Salines Mateo", "Pollastrone Luigi", "Rigillo Carmelo", "Ciano Stefano", "Morra Vito", "Contardo Luca"] },
   { name: "Red Wolves", group: "B", logo: "resources/logos/red_wolves.png", photo: "resources/images/red_wolves.jpg", players: ["Hamada Karim", "Manserra Vincenzo", "Seydou Sinka", "Simone Mario", "Kassam Karim", "Muhammed Kamus Camara", "Jammeh Moddou", "Labriola Alessandro"] },
   { name: "RP Gold Team", group: "B", logo: "resources/logos/rp_gold_team.png", photo: "resources/images/rp_gold_team.jpeg", players: ["Iacullo Luca", "Iacullo Gerardo", "Donofrio Antonio", "Viola Antonello", "Barbato Sergio", "Loreto Gerardo", "Del Vento Giuseppe", "Daquino Italo", "Di Vito Antonio", "De Rosa Roberto"] },
-  { name: "Zetaquadro Bar", group: "B", logo: "resources/logos/zetaquadro_bar.png", photo: "resources/images/zetaquadro_bar.jpeg", players: ["Rigillo Francesco", "Capuano Nicola", "Marino Domenico", "Rauseo Giuseppe", "Pizzulo Giovanni", "Sauro Nazario", "Di Masi Euplio", "De Feo Antonio", "Crincoli Vincenzo"] },
+  { name: "Zetaquadro Bar", group: "B", logo: "resources/logos/zetaquadro_bar.png", photo: "resources/images/zetaquadro_bar.jpeg", players: ["Rigillo Francesco", "Capuano Nicola", "Marino Domenico", "Rauseo Giuseppe", "Pizzulo Giovanni", "Sauro Nazario", "Di Masi Euplio", "De Feo Antonio"] },
   { name: "HP", group: "B", logo: "resources/logos/hp.png", photo: "resources/images/hp.jpeg", players: ["Annichiarico Antonio", "Cagliuli Marco", "Cornacchia Andrea", "Cornacchia Giuseppe", "De Cotiis Alfonso", "De Cotiis Vito", "El Majery Zaccaria", "Ibrahim Sory Camara", "Lapolla Giuseppe", "Spada Fabrizio"] },
   { name: "Bar in Piazza", group: "B", logo: "resources/logos/bar_in_piazza.png", photo: "resources/images/bar_in_piazza.jpg", players: ["Barbato Giuseppe", "Membrino Luigi", "Rattazzi Simone", "Di Pippa Luca", "Elviro Antonio", "Santoro Mario", "Puzo Gabriele", "Di Laurenzo Francesco C.", "Lo Conte Giovanni"] },
 ];
@@ -923,50 +923,62 @@ async function renderAdminMatches() {
   adminMatches.innerHTML = "";
   MATCHES.filter((m) => m.editable !== false).forEach((match) => {
     const row = document.createElement("div");
-    row.className = "admin-match-row";
+    row.className = "admin-match-row collapsed";
     const result = getMatchResult(results, match.id);
     row.innerHTML = `
       <div class="admin-match-title">${match.date} ${match.time} · ${match.home} vs ${match.away}</div>
-      <div class="score-grid">
-        <div>
-          <label>${match.home} gol</label>
-          <input type="number" min="0" value="${result.homeGoals}" data-match="${match.id}" data-score="homeGoals" placeholder="Gol" />
+      <div class="admin-match-body">
+        <div class="score-grid">
+          <div>
+            <label>${match.home} gol</label>
+            <input type="number" min="0" value="${result.homeGoals}" data-match="${match.id}" data-score="homeGoals" placeholder="Gol" />
+          </div>
+          <div>
+            <label>${match.away} gol</label>
+            <input type="number" min="0" value="${result.awayGoals}" data-match="${match.id}" data-score="awayGoals" placeholder="Gol" />
+          </div>
         </div>
-        <div>
-          <label>${match.away} gol</label>
-          <input type="number" min="0" value="${result.awayGoals}" data-match="${match.id}" data-score="awayGoals" placeholder="Gol" />
+        <div class="team-row-grid">
+          <div class="team-section">
+            <div class="team-section-title">${match.home}</div>
+            <label>Rossi ${match.home}</label>
+            <input type="number" min="0" value="${result.homeRedCards}" data-match="${match.id}" data-cards="homeRed" placeholder="Rossi" />
+            <label>Gialli ${match.home}</label>
+            <input type="number" min="0" value="${result.homeYellowCards}" data-match="${match.id}" data-cards="homeYellow" placeholder="Gialli" />
+            <div class="team-player-adder">
+              <select data-match="${match.id}" data-side="home" data-player-add></select>
+              <button type="button" data-add-player="${match.id}" data-side="home">Aggiungi calciatore</button>
+            </div>
+            <div class="team-player-list" data-match="${match.id}" data-side="home"></div>
+          </div>
+          <div class="team-section">
+            <div class="team-section-title">${match.away}</div>
+            <label>Rossi ${match.away}</label>
+            <input type="number" min="0" value="${result.awayRedCards}" data-match="${match.id}" data-cards="awayRed" placeholder="Rossi" />
+            <label>Gialli ${match.away}</label>
+            <input type="number" min="0" value="${result.awayYellowCards}" data-match="${match.id}" data-cards="awayYellow" placeholder="Gialli" />
+            <div class="team-player-adder">
+              <select data-match="${match.id}" data-side="away" data-player-add></select>
+              <button type="button" data-add-player="${match.id}" data-side="away">Aggiungi calciatore</button>
+            </div>
+            <div class="team-player-list" data-match="${match.id}" data-side="away"></div>
+          </div>
+        </div>
+        <div class="admin-match-actions">
+          <button type="button" data-save="${match.id}">Salva incontro</button>
+          <div class="status-msg" id="status-${match.id}"></div>
         </div>
       </div>
-      <div class="team-row-grid">
-        <div class="team-section">
-          <div class="team-section-title">${match.home}</div>
-          <label>Rossi ${match.home}</label>
-          <input type="number" min="0" value="${result.homeRedCards}" data-match="${match.id}" data-cards="homeRed" placeholder="Rossi" />
-          <label>Gialli ${match.home}</label>
-          <input type="number" min="0" value="${result.homeYellowCards}" data-match="${match.id}" data-cards="homeYellow" placeholder="Gialli" />
-          <div class="team-player-adder">
-            <select data-match="${match.id}" data-side="home" data-player-add></select>
-            <button type="button" data-add-player="${match.id}" data-side="home">Aggiungi calciatore</button>
-          </div>
-          <div class="team-player-list" data-match="${match.id}" data-side="home"></div>
-        </div>
-        <div class="team-section">
-          <div class="team-section-title">${match.away}</div>
-          <label>Rossi ${match.away}</label>
-          <input type="number" min="0" value="${result.awayRedCards}" data-match="${match.id}" data-cards="awayRed" placeholder="Rossi" />
-          <label>Gialli ${match.away}</label>
-          <input type="number" min="0" value="${result.awayYellowCards}" data-match="${match.id}" data-cards="awayYellow" placeholder="Gialli" />
-          <div class="team-player-adder">
-            <select data-match="${match.id}" data-side="away" data-player-add></select>
-            <button type="button" data-add-player="${match.id}" data-side="away">Aggiungi calciatore</button>
-          </div>
-          <div class="team-player-list" data-match="${match.id}" data-side="away"></div>
-        </div>
-      </div>
-      <button type="button" data-save="${match.id}">Salva incontro</button>
-      <div class="status-msg" id="status-${match.id}"></div>
     `;
     adminMatches.appendChild(row);
+    // Toggle collapse when clicking title
+    const titleEl = row.querySelector('.admin-match-title');
+    if (titleEl) {
+      titleEl.style.cursor = 'pointer';
+      titleEl.addEventListener('click', () => {
+        row.classList.toggle('collapsed');
+      });
+    }
     fillMatchPlayerSelect(row, match.id, "home", match.home, results);
     fillMatchPlayerSelect(row, match.id, "away", match.away, results);
     renderMatchPlayerList(row, match.id, "home", match.home, results);
@@ -1192,8 +1204,46 @@ document.addEventListener("DOMContentLoaded", async () => {
   await setupAdminPage();
   setupResultsRealtimeSync();
 
-  // Process Instagram embeds after DOM is ready
-  if (window.instgrm && window.instgrm.Embed && window.instgrm.Embed.process) {
-    window.instgrm.Embed.process();
-  }
+  // Process Instagram embeds after DOM is ready.
+  // Try immediately, attach to the embed script's load event, or poll as fallback.
+  (function processInstagramEmbeds() {
+    function tryProcess() {
+      if (window.instgrm && window.instgrm.Embed && typeof window.instgrm.Embed.process === 'function') {
+        try {
+          window.instgrm.Embed.process();
+        } catch (e) {
+          console.warn('Instagram embed processing failed:', e);
+        }
+        return true;
+      }
+      return false;
+    }
+
+    if (tryProcess()) return;
+
+    const scripts = Array.from(document.getElementsByTagName('script'));
+    const instaScript = scripts.find((s) => s.src && s.src.includes('instagram.com/embed.js'));
+    if (instaScript) {
+      instaScript.addEventListener('load', tryProcess);
+      if (instaScript.readyState === 'complete' || instaScript.readyState === 'loaded') {
+        tryProcess();
+      }
+    } else {
+      const s = document.createElement('script');
+      s.src = 'https://www.instagram.com/embed.js';
+      s.async = true;
+      s.defer = true;
+      s.addEventListener('load', tryProcess);
+      document.body.appendChild(s);
+    }
+
+    // Polling fallback (tries for ~5s)
+    let tries = 0;
+    const poll = setInterval(() => {
+      if (tryProcess() || tries > 10) {
+        clearInterval(poll);
+      }
+      tries++;
+    }, 500);
+  })();
 });
