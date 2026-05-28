@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Torneo di calcio a 5</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
   </head>
   <body>
     <header class="site-hero">
@@ -32,7 +36,7 @@
     <main>
       <section class="card hero-core">
         <h2>Benvenuti al torneo</h2>
-        <p class="hero-info">Inizio 27 Maggio 2026</p>
+        <p class="hero-info">In Bocca al Lupo a tutti i partecipanti!</p>
         <div class="next-day-card">
           <h3>Prossima giornata:</h3>
           <ul id="next-day-list"></ul>
@@ -40,6 +44,10 @@
       </section>
     </main>
     <script defer src="app.js"></script>
+
+    <section class="disclaimer-section card">
+      <p>Il sito è in continua evoluzione, ci scusiamo per eventuali errori di visualizzazione, appena possibile verranno sistemati</p>
+    </section>
 
     <section class="bottom-info card">
       <p>Impianto Sportivo Mons. Guido Maria Casullo</p>

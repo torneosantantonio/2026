@@ -335,6 +335,19 @@ a:hover {
   color: #e9e0c4;
   font-weight: 500;
 }
+.disclaimer-section {
+  max-width: 880px;
+  margin: 0 auto 1rem;
+  padding: 1.2rem;
+  background: linear-gradient(180deg, rgba(8,18,40,0.9), rgba(6,12,28,0.88));
+  border: 1px solid rgba(255,255,255,0.06);
+  text-align: center;
+}
+.disclaimer-section p {
+  margin: 0;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
 .bottom-info {
   max-width: 880px;
   margin: 0 auto 2rem;
@@ -666,4 +679,17 @@ button:hover {
     max-width: 120px;
   }
   .team-row { flex-wrap: wrap; gap: 0.5rem; }
+  /* Mostra le intestazioni delle tabelle in verticale per risparmiare spazio orizzontale */
+  .panel-body table th {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    padding: 0.35rem 0.45rem;
+    white-space: nowrap;
+    font-size: 0.86rem;
+    vertical-align: middle;
+  }
+  .panel-body table thead tr {
+    height: auto;
+  }
 }

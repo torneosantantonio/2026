@@ -113,6 +113,7 @@ function normalizeResultsData(results) {
   if (!results.playerStats || typeof results.playerStats !== 'object') {
     results.playerStats = {};
   }
+  console.log("normalizeResultsData:", results);
   return results;
 }
 
@@ -162,9 +163,11 @@ async function saveResults(results) {
     results = {};
   }
   results = normalizeResultsData(results);
+  console.log("saveResults - results to save:", results);
   if (initializeFirebase()) {
     try {
       await db.collection("tournament").doc("results").set({ results });
+      console.log("saveResults - saved to Firestore");
     } catch (error) {
       console.warn("Firestore save failed:", error);
       saveResultsLocally(results);
@@ -172,6 +175,14 @@ async function saveResults(results) {
   } else {
     saveResultsLocally(results);
   }
+}
+
+function findTeamByName(teamName) {
+  if (!teamName || typeof teamName !== 'string') return null;
+  const normalizedName = teamName.trim().toLowerCase();
+  let team = TEAMS_DATA.find((t) => t.name.trim().toLowerCase() === normalizedName);
+  if (team) return team;
+  return TEAMS_DATA.find((t) => t.name.trim().toLowerCase().includes(normalizedName) || normalizedName.includes(t.name.trim().toLowerCase()));
 }
 
 function getPlayerTeamName(playerName) {
@@ -228,6 +239,8 @@ async function upsertPlayerStats(playerName, goals, yellowCards, redCards) {
 
 async function upsertResult(matchId, homeGoals, awayGoals, homeRedCards = 0, homeYellowCards = 0, awayRedCards = 0, awayYellowCards = 0, playerEvents = { home: [], away: [] }) {
   const current = await loadResults();
+  console.log("upsertResult - PRIMA - current:", current);
+  
   if (homeGoals === "" || awayGoals === "") {
     delete current[matchId];
   } else {
@@ -245,6 +258,7 @@ async function upsertResult(matchId, homeGoals, awayGoals, homeRedCards = 0, hom
     };
   }
   current.playerStats = computeGlobalPlayerStats(current);
+  console.log("upsertResult - DOPO - current:", current);
   await saveResults(current);
 }
 
@@ -299,7 +313,7 @@ function fillMatchPlayerSelect(row, matchId, side, teamName, results) {
   const select = row.querySelector(`select[data-match="${matchId}"][data-side="${side}"][data-player-add]`);
   if (!select) return;
   select.innerHTML = "";
-  const teamData = TEAMS_DATA.find((t) => t.name === teamName);
+  const teamData = findTeamByName(teamName);
   if (!teamData) return;
   const existing = new Set(
     Array.from(row.querySelectorAll(`.team-player-list[data-match="${matchId}"][data-side="${side}"] .team-player-row`)).map((el) => el.dataset.player)
@@ -422,18 +436,36 @@ function computeStandings(results) {
   });
 }
 
-async function renderNextDayIfPresent() {
+async function renderNextDayIfPresent(results = null) {
   const list = document.getElementById("next-day-list");
   if (!list) return;
   list.innerHTML = "";
-  const results = await loadResults();
-  const nextMatches = MATCHES.filter(m => !results[m.id]).slice(0, 3);
-  if (nextMatches.length === 0) {
+  if (!results) {
+    results = await loadResults();
+  }
+  
+  console.log("renderNextDayIfPresent - results:", results);
+  console.log("renderNextDayIfPresent - MATCHES:", MATCHES.map(m => ({ id: m.id, date: m.date, hasResult: !!results[m.id] })));
+  
+  // Find the first match without results
+  const firstMatchWithoutResult = MATCHES.find(m => !results[m.id]);
+  
+  console.log("firstMatchWithoutResult:", firstMatchWithoutResult);
+  
+  if (!firstMatchWithoutResult) {
     const li = document.createElement("li");
     li.textContent = "Tutte le partite sono state giocate!";
     list.appendChild(li);
     return;
   }
+  
+  // Get all matches from the same date as the first match without results
+  const nextDate = firstMatchWithoutResult.date;
+  const nextMatches = MATCHES.filter(m => m.date === nextDate && !results[m.id]);
+  
+  console.log("nextDate:", nextDate);
+  console.log("nextMatches:", nextMatches);
+  
   nextMatches.forEach((match) => {
     const li = document.createElement("li");
     li.textContent = `${match.date} ${match.time} — ${match.home} vs ${match.away}`;
@@ -632,7 +664,7 @@ function renderPlayerSelectOptions(teamName, results) {
   const playerSelect = document.getElementById("player-name");
   if (!playerSelect) return;
   playerSelect.innerHTML = "";
-  const teamData = TEAMS_DATA.find((t) => t.name === teamName);
+  const teamData = findTeamByName(teamName);
   if (!teamData) return;
   const currentStats = results.playerStats || {};
   teamData.players.forEach((player) => {
@@ -648,15 +680,28 @@ function fillMatchPlayerSelect(row, matchId, side, teamName, results) {
   const select = row.querySelector(`select[data-match="${matchId}"][data-side="${side}"]`);
   if (!select) return;
   select.innerHTML = "";
-  const teamData = TEAMS_DATA.find((t) => t.name === teamName);
+  const teamData = findTeamByName(teamName);
   if (!teamData) return;
+  const existing = new Set(
+    Array.from(row.querySelectorAll(`.team-player-list[data-match="${matchId}"][data-side="${side}"] .team-player-row`)).map((el) => el.dataset.player)
+  );
   teamData.players.forEach((player) => {
+    if (existing.has(player)) return;
     const stats = getPlayerStats(results, player);
     const option = document.createElement("option");
     option.value = player;
     option.textContent = `${player} (${stats.goals}g ${stats.redCards}r ${stats.yellowCards}y)`;
     select.appendChild(option);
   });
+  if (select.children.length === 0) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "Tutti i giocatori aggiunti";
+    select.appendChild(option);
+    select.disabled = true;
+  } else {
+    select.disabled = false;
+  }
 }
 
 function populateMatchPlayerStats(row, matchId, side, results) {
@@ -796,7 +841,6 @@ async function renderAdminMatches() {
           <label>${match.away} gol</label>
           <input type="number" min="0" value="${result.awayGoals}" data-match="${match.id}" data-score="awayGoals" placeholder="Gol" />
         </div>
-        <button type="button" data-save="${match.id}">Salva incontro</button>
       </div>
       <div class="team-row-grid">
         <div class="team-section">
@@ -824,6 +868,7 @@ async function renderAdminMatches() {
           <div class="team-player-list" data-match="${match.id}" data-side="away"></div>
         </div>
       </div>
+      <button type="button" data-save="${match.id}">Salva incontro</button>
       <div class="status-msg" id="status-${match.id}"></div>
     `;
     adminMatches.appendChild(row);
@@ -905,9 +950,12 @@ async function renderAdminMatches() {
       await upsertResult(id, homeInput.value, awayInput.value, homeRedInput.value, homeYellowInput.value, awayRedInput.value, awayYellowInput.value, { home: homeEvents, away: awayEvents });
       const status = document.getElementById(`status-${id}`);
       status.textContent = "Incontro salvato.";
+      // Give a small delay for data sync, then load and render
+      await new Promise(r => setTimeout(r, 300));
+      const updatedResults = await loadResults();
       await renderCalendarIfPresent();
       await renderStandingsIfPresent();
-      await renderNextDayIfPresent();
+      await renderNextDayIfPresent(updatedResults);
       await renderPlayerRankingsIfPresent();
     });
   });
@@ -1022,7 +1070,8 @@ function setupResultsRealtimeSync() {
   const hasCalendar = !!document.getElementById("calendar-container") || !!document.getElementById("calendar-body");
   const hasStandings = !!document.getElementById("standings-body-a") || !!document.getElementById("standings-body-b") || !!document.getElementById("standings-body");
   const hasPlayerRanking = !!document.getElementById("player-rankings-body");
-  if (!hasCalendar && !hasStandings && !hasPlayerRanking) return;
+  const hasNextDay = !!document.getElementById("next-day-list");
+  if (!hasCalendar && !hasStandings && !hasPlayerRanking && !hasNextDay) return;
   if (!initializeFirebase() || !db || typeof db.collection !== "function") return;
 
   db.collection("tournament").doc("results").onSnapshot(
@@ -1030,6 +1079,7 @@ function setupResultsRealtimeSync() {
       if (hasCalendar) await renderCalendarIfPresent();
       if (hasStandings) await renderStandingsIfPresent();
       if (hasPlayerRanking) await renderPlayerRankingsIfPresent();
+      if (hasNextDay) await renderNextDayIfPresent();
     },
     (error) => {
       console.warn("Realtime standings/calendar sync failed:", error);
