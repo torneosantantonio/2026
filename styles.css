@@ -645,7 +645,8 @@ button:hover {
   }
   th, td {
     padding: 0.5rem;
-    white-space: nowrap;
+    white-space: normal;
+    word-break: break-word;
   }
   th {
     font-weight: 700;
@@ -689,6 +690,13 @@ button:hover {
     padding: 0.4rem;
     font-size: 0.8rem;
   }
+  #calendar-container .panel-body table {
+    min-width: 100%;
+  }
+  #calendar-container .panel-body table th,
+  #calendar-container .panel-body table td {
+    white-space: nowrap;
+  }
   .admin-match-row,
   .team-section {
     padding: 0.75rem 0.65rem;
@@ -710,6 +718,36 @@ button:hover {
     max-width: 120px;
   }
   .team-row { flex-wrap: wrap; gap: 0.5rem; }
+}
+
+@media (max-width: 620px) {
+  #calendar-container .panel-body table {
+    display: table;
+    width: 100%;
+    min-width: max-content;
+    table-layout: auto;
+    margin-top: 0.6rem;
+  }
+  #calendar-container .panel-body table thead {
+    display: table-header-group;
+  }
+  #calendar-container .panel-body table tbody {
+    display: table-row-group;
+  }
+  #calendar-container .panel-body table tr {
+    display: table-row;
+  }
+  #calendar-container .panel-body table th,
+  #calendar-container .panel-body table td {
+    display: table-cell;
+    white-space: nowrap;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.85rem;
+  }
+  #calendar-container .panel-body {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 @media (max-width: 480px) {
