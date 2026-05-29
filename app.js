@@ -24,14 +24,14 @@ function usernameToEmail(username) {
 // Squadre e calendario presi dalla locandina gironi.jpeg
 const TEAMS_DATA = [
   { name: "Mirabellarum Robur", group: "A", logo: "resources/logos/mirabellarum_robur.png", photo: "resources/images/mirabellarum_robur.jpg", players: ["Pierro Michele", "Macchiaverna Rocco", "Solimine Antonio", "Di Corcia Antonio", "De Angelis Antonio", "Lambarelli Christian", "Chinni Niccolò", "Lisi Pasquale", "Solimine E"] },
-  { name: "Monteleone", group: "A", logo: "resources/logos/monteleone.png", photo: "resources/images/monteleone.jpg", players: ["Addorisio Giuseppe", "Caggianiello Diego", "Pucillo Ivan", "Colangelo Fedele", "Labbate Giuliano", "Tarantino Raffaele", "Manserra Vincenzo", "Novia Giuseppe", "Santos Juanfran", "Mamadou Sabaly", "Lamanna Antonio", "Grosso Mario"] },
+  { name: "Monteleone", group: "A", logo: "resources/logos/monteleone.png", photo: "resources/images/monteleone.jpeg", players: ["Addorisio Giuseppe", "Caggianiello Diego", "Pucillo Ivan", "Colangelo Fedele", "Labbate Giuliano", "Tarantino Raffaele", "Manserra Vincenzo", "Novia Giuseppe", "Santos Juanfran", "Mamadou Sabaly", "Lamanna Antonio", "Grosso Mario"] },
   { name: "RP Team", group: "A", logo: "resources/logos/rp_team.png", photo: "resources/images/rp_team.jpg", players: ["Nasser Eddine Mohamed", "Manserra Leonardo", "Andriuh Yhiuan", "Pucillo Angelo", "Postiglione Giuseppe", "Eddine Ali Nasser", "Lorizzo Michele", "Labriola Michele", "Ramadan Shehab", "Moshodi Farouk", "Ahmed Fares", "Hanafi Momen"] },
   { name: "FC Orsa Maggiore", group: "A", logo: "resources/logos/fc_orsa_maggiore.png", photo: "resources/images/fc_orsa_maggiore.jpg", players: ["Tounkara Adama", "Sidibe Fakouly", "Kone Oumar", "Jaiteh Foday", "Sidibe Yoro", "Traore Nouha", "Sacko Basadio", "Sheikh Himel", "Hawlader Sanjit/Sohan", "Ebrima Gaye", "Bah Dawda", "Fadiga Fode"] },
   { name: "Team DR", group: "A", logo: "resources/logos/team_dr.png", photo: "resources/images/team_dr.jpg", players: ["Cardinale Lorenzo", "Riccio Carmelo", "Zevola Giacomo", "Chillo Raffaele", "Costanzo Nicola", "Luzzi Leonardo", "Salines Mateo", "Pollastrone Luigi", "Rigillo Carmelo", "Ciano Stefano", "Morra Vito", "Contardo Luca"] },
   { name: "Red Wolves", group: "B", logo: "resources/logos/red_wolves.png", photo: "resources/images/red_wolves.jpg", players: ["Hamada Karim", "Manserra Vincenzo", "Seydou Sinka", "Simone Mario", "Kassam Karim", "Muhammed Kamus Camara", "Jammeh Moddou", "Labriola Alessandro"] },
   { name: "RP Gold Team", group: "B", logo: "resources/logos/rp_gold_team.png", photo: "resources/images/rp_gold_team.jpeg", players: ["Iacullo Luca", "Iacullo Gerardo", "Donofrio Antonio", "Viola Antonello", "Barbato Sergio", "Loreto Gerardo", "Del Vento Giuseppe", "Daquino Italo", "Di Vito Antonio", "De Rosa Roberto"] },
-  { name: "Zetaquadro Bar", group: "B", logo: "resources/logos/zetaquadro_bar.png", photo: "resources/images/zetaquadro_bar.jpg", players: ["Rigillo Francesco", "Capuano Nicola", "Marino Domenico", "Rauseo Giuseppe", "Pizzulo Giovanni", "Sauro Nazario", "Di Masi Euplio", "De Feo Antonio"] },
-  { name: "HP", group: "B", logo: "resources/logos/hp.png", photo: "resources/images/hp.jpg", players: ["Annichiarico Antonio", "Cagliuli Marco", "Cornacchia Andrea", "Cornacchia Giuseppe", "De Cotiis Alfonso", "De Cotiis Vito", "El Majery Zaccaria", "Ibrahim Sory Camara", "Lapolla Giuseppe", "Spada Fabrizio"] },
+  { name: "Zetaquadro Bar", group: "B", logo: "resources/logos/zetaquadro_bar.png", photo: "resources/images/zetaquadro_bar.jpeg", players: ["Rigillo Francesco", "Capuano Nicola", "Marino Domenico", "Rauseo Giuseppe", "Pizzulo Giovanni", "Sauro Nazario", "Di Masi Euplio", "De Feo Antonio"] },
+  { name: "HP", group: "B", logo: "resources/logos/hp.png", photo: "resources/images/hp.jpeg", players: ["Annichiarico Antonio", "Cagliuli Marco", "Cornacchia Andrea", "Cornacchia Giuseppe", "De Cotiis Alfonso", "De Cotiis Vito", "El Majery Zaccaria", "Ibrahim Sory Camara", "Lapolla Giuseppe", "Spada Fabrizio"] },
   { name: "Bar in Piazza", group: "B", logo: "resources/logos/bar_in_piazza.png", photo: "resources/images/bar_in_piazza.jpg", players: ["Barbato Giuseppe", "Membrino Luigi", "Rattazzi Simone", "Di Pippa Luca", "Elviro Antonio", "Santoro Mario", "Puzo Gabriele", "Di Laurenzo Francesco C.", "Lo Conte Giovanni"] },
 ];
 
@@ -433,6 +433,47 @@ function computeStandings(results) {
     if (diffB !== diffA) return diffB - diffA;
     if (b.gf !== a.gf) return b.gf - a.gf;
     return a.team.localeCompare(b.team);
+  });
+}
+
+async function renderLastDayIfPresent(results = null) {
+  const list = document.getElementById("last-day-list");
+  if (!list) return;
+  list.innerHTML = "";
+  if (!results) {
+    results = await loadResults();
+  }
+  
+  console.log("renderLastDayIfPresent - results:", results);
+  
+  // Find all matches with results
+  const matchesWithResults = MATCHES.filter(m => results[m.id]);
+  
+  console.log("matchesWithResults:", matchesWithResults);
+  
+  if (matchesWithResults.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "Nessun risultato ancora disponibile";
+    list.appendChild(li);
+    return;
+  }
+  
+  // Get the last match with result
+  const lastMatchWithResult = matchesWithResults[matchesWithResults.length - 1];
+  const lastDate = lastMatchWithResult.date;
+  
+  console.log("lastDate:", lastDate);
+  
+  // Get all matches from the same date as the last match with results, but only those with results
+  const lastDayMatches = MATCHES.filter(m => m.date === lastDate && results[m.id]);
+  
+  console.log("lastDayMatches:", lastDayMatches);
+  
+  lastDayMatches.forEach((match) => {
+    const li = document.createElement("li");
+    const result = getResultLabel(match, results);
+    li.textContent = `${match.home} vs ${match.away} — ${result}`;
+    list.appendChild(li);
   });
 }
 
@@ -1177,8 +1218,9 @@ function setupResultsRealtimeSync() {
   const hasCalendar = !!document.getElementById("calendar-container") || !!document.getElementById("calendar-body");
   const hasStandings = !!document.getElementById("standings-body-a") || !!document.getElementById("standings-body-b") || !!document.getElementById("standings-body");
   const hasPlayerRanking = !!document.getElementById("player-rankings-body");
+  const hasLastDay = !!document.getElementById("last-day-list");
   const hasNextDay = !!document.getElementById("next-day-list");
-  if (!hasCalendar && !hasStandings && !hasPlayerRanking && !hasNextDay) return;
+  if (!hasCalendar && !hasStandings && !hasPlayerRanking && !hasLastDay && !hasNextDay) return;
   if (!initializeFirebase() || !db || typeof db.collection !== "function") return;
 
   db.collection("tournament").doc("results").onSnapshot(
@@ -1186,6 +1228,7 @@ function setupResultsRealtimeSync() {
       if (hasCalendar) await renderCalendarIfPresent();
       if (hasStandings) await renderStandingsIfPresent();
       if (hasPlayerRanking) await renderPlayerRankingsIfPresent();
+      if (hasLastDay) await renderLastDayIfPresent();
       if (hasNextDay) await renderNextDayIfPresent();
     },
     (error) => {
@@ -1199,6 +1242,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await renderStandingsIfPresent();
   await renderFinalPhaseIfPresent();
   await renderPlayerRankingsIfPresent();
+  await renderLastDayIfPresent();
   await renderNextDayIfPresent();
   await renderTeamsIfPresent();
   await setupAdminPage();

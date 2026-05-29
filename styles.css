@@ -319,25 +319,35 @@ a:hover {
   color: var(--accent);
   font-weight: 700;
 }
-.next-day-card {
+.days-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
   margin: 1.1rem auto 0;
+  max-width: 100%;
+  padding: 0 1rem;
+}
+.next-day-card,
+.last-day-card {
   padding: 1rem 1rem;
-  max-width: 760px;
   background: linear-gradient(180deg, rgba(9,24,52,0.72), rgba(6,12,30,0.76));
   border: 1px solid rgba(50,120,220,0.08);
   border-radius: 10px;
 }
-.next-day-card h3 {
+.next-day-card h3,
+.last-day-card h3 {
   margin: 0 0 0.75rem;
   font-size: 1.15rem;
   color: #c8e1ff;
 }
-.next-day-card ul {
+.next-day-card ul,
+.last-day-card ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
-.next-day-card li {
+.next-day-card li,
+.last-day-card li {
   margin: 0.35rem 0;
   color: #e9e0c4;
   font-weight: 500;
@@ -1100,13 +1110,21 @@ button:hover {
   .hero-core {
     padding: 1.2rem 0.75rem;
   }
-  .next-day-card {
+  .days-container {
+    grid-template-columns: 1fr;
+    margin: 1.1rem auto 0;
+    padding: 0 0.75rem;
+  }
+  .next-day-card,
+  .last-day-card {
     padding: 0.8rem;
   }
-  .next-day-card h3 {
+  .next-day-card h3,
+  .last-day-card h3 {
     font-size: 1rem;
   }
-  .next-day-card li {
+  .next-day-card li,
+  .last-day-card li {
     font-size: 0.9rem;
   }
   .fantatorneo-card {
