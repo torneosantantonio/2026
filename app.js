@@ -609,7 +609,7 @@ async function renderTeamsIfPresent() {
   TEAMS_DATA.forEach((team) => {
     const card = document.createElement("div");
     card.className = "team-card-item";
-    const players = (team.players || []).slice(0, 12);
+    const players = (team.players || []).slice(0, 13);
     const playersHtml = players.map((p) => `<li>${p}</li>`).join("");
     const photoSrc = team.photo || team.logo;
     card.innerHTML = `
