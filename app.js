@@ -26,7 +26,7 @@ const TEAMS_DATA = [
   { name: "Mirabellarum Robur", group: "A", logo: "resources/logos/mirabellarum_robur.png", photo: "resources/images/mirabellarum_robur.jpg", players: ["Pierro Michele", "Macchiaverna Rocco", "Solimine Antonio", "Di Corcia Antonio", "De Angelis Antonio", "Lambarelli Christian", "Chinni Niccolò", "Lisi Pasquale", "Solimine E"] },
   { name: "Monteleone", group: "A", logo: "resources/logos/monteleone.png", photo: "resources/images/monteleone.jpg", players: ["Addorisio Giuseppe", "Caggianiello Diego", "Pucillo Ivan", "Colangelo Fedele", "Labbate Giuliano", "Tarantino Raffaele", "Manserra Vincenzo", "Novia Giuseppe", "Santos Juanfran", "Mamadou Sabaly", "Lamanna Antonio", "Grosso Mario"] },
   { name: "RP Team", group: "A", logo: "resources/logos/rp_team.png", photo: "resources/images/rp_team.jpg", players: ["Nasser Eddine Mohamed", "Manserra Leonardo", "Andriuh Yhiuan", "Pucillo Angelo", "Postiglione Giuseppe", "Eddine Ali Nasser", "Lorizzo Michele", "Labriola Michele", "Ramadan Shehab", "Moshodi Farouk", "Ahmed Fares", "Hanafi Momen"] },
-  { name: "FC Orsa Maggiore", group: "A", logo: "resources/logos/fc_orsa_maggiore.png", photo: "resources/images/fc_orsa_maggiore.jpg", players: ["Tounkara Adama", "Sidibe Fakouly", "Kone Oumar", "Jaiteh Foday", "Sidibe Yoro", "Traore Nouha", "Sacko Basadio", "Sheikh Himel", "Hawlader Sanjit/Sohan", "Ebrima Gaye", "Bah Dawda", "Fadiga Fode", "Yassin"] },
+  { name: "FC Orsa Maggiore", group: "A", logo: "resources/logos/fc_orsa_maggiore.png", photo: "resources/images/fc_orsa_maggiore.jpg", players: ["Tounkara Adama", "Sidibe Fakouly", "Kone Oumar", "Jaiteh Foday", "Sidibe Yoro", "Traore Nouha", "Sacko Basadio", "Sheikh Himel", "Hawlader Sanjit/Sohan", "Ebrima Gaye", "Bah Dawda", "Fadiga Fode"] },
   { name: "Team DR", group: "A", logo: "resources/logos/team_dr.png", photo: "resources/images/team_dr.jpg", players: ["Cardinale Lorenzo", "Riccio Carmelo", "Zevola Giacomo", "Chillo Raffaele", "Costanzo Nicola", "Luzzi Leonardo", "Salines Mateo", "Pollastrone Luigi", "Rigillo Carmelo", "Ciano Stefano", "Morra Vito", "Contardo Luca"] },
   { name: "Red Wolves", group: "B", logo: "resources/logos/red_wolves.png", photo: "resources/images/red_wolves.jpg", players: ["Hamada Karim", "Manserra Vincenzo", "Seydou Sinka", "Simone Mario", "Kassam Karim", "Muhammed Kamus Camara", "Jammeh Moddou", "Labriola Alessandro"] },
   { name: "RP Gold Team", group: "B", logo: "resources/logos/rp_gold_team.png", photo: "resources/images/rp_gold_team.jpeg", players: ["Iacullo Luca", "Iacullo Gerardo", "Donofrio Antonio", "Viola Antonello", "Barbato Sergio", "Loreto Gerardo", "Del Vento Giuseppe", "Daquino Italo", "Di Vito Antonio", "De Rosa Roberto"] },
@@ -37,40 +37,69 @@ const TEAMS_DATA = [
 
 const TEAMS = TEAMS_DATA.map(t => t.name);
 
+const WEEKDAY_NAMES_IT = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+const MONTH_NAMES_IT = {
+  gennaio: 0,
+  febbraio: 1,
+  marzo: 2,
+  aprile: 3,
+  maggio: 4,
+  giugno: 5,
+  luglio: 6,
+  agosto: 7,
+  settembre: 8,
+  ottobre: 9,
+  novembre: 10,
+  dicembre: 11,
+};
+
+function formatMatchDateWithWeekday(dateString) {
+  if (!dateString || typeof dateString !== 'string') return dateString;
+  const [dayPart, monthPart] = dateString.trim().split(' ');
+  const day = Number(dayPart);
+  const monthKey = (monthPart || '').trim().toLowerCase();
+  if (!day || !(monthKey in MONTH_NAMES_IT)) return dateString;
+  const year = new Date().getFullYear();
+  const date = new Date(year, MONTH_NAMES_IT[monthKey], day);
+  if (Number.isNaN(date.getTime())) return dateString;
+  const weekday = WEEKDAY_NAMES_IT[date.getDay()];
+  return `${weekday} ${dateString}`;
+}
+
 const MATCHES = [
-  // 27 Maggio
+  // 27 Maggio Mercoledi
   { id: "m1", date: "27 Maggio", time: "19:00", home: "Mirabellarum Robur", away: "Team DR", field: "Campo", group: "A" },
   { id: "m2", date: "27 Maggio", time: "20:00", home: "Red Wolves", away: "Bar in Piazza", field: "Campo", group: "B" },
   { id: "m3", date: "27 Maggio", time: "21:00", home: "FC Orsa Maggiore", away: "RP Team", field: "Campo", group: "A" },
 
-  // 28 Maggio
+  // 28 Maggio Giovedì
   { id: "m4", date: "28 Maggio", time: "20:00", home: "Monteleone", away: "RP Team", field: "Campo", group: "A" },
   { id: "m5", date: "28 Maggio", time: "21:00", home: "Zetaquadro Bar", away: "HP", field: "Campo", group: "B" },
 
-  // 29 Maggio
+  // 29 Maggio Venerdì
   { id: "m6", date: "29 Maggio", time: "19:00", home: "HP", away: "Bar in Piazza", field: "Campo", group: "B" },
   { id: "m7", date: "29 Maggio", time: "20:00", home: "RP Gold Team", away: "Zetaquadro Bar", field: "Campo", group: "B" },
   { id: "m8", date: "29 Maggio", time: "21:00", home: "FC Orsa Maggiore", away: "Team DR", field: "Campo", group: "A" },
 
-  // 1 Giugno
-  { id: "m9", date: "1 Giugno", time: "19:00", home: "Monteleone", away: "FC Orsa Maggiore", field: "Campo", group: "A" },
-  { id: "m10", date: "1 Giugno", time: "20:00", home: "RP Gold Team", away: "HP", field: "Campo", group: "B" },
-  { id: "m11", date: "1 Giugno", time: "21:00", home: "RP Team", away: "Mirabellarum Robur", field: "Campo", group: "A" },
+  // 4 Giugno Giovedì
+  { id: "m9", date: "4 Giugno", time: "19:00", home: "Bar in Piazza", away: "RP Gold Team", field: "Campo", group: "B" },
+  { id: "m10", date: "4 Giugno", time: "20:00", home: "Zetaquadro Bar", away: "Red Wolves", field: "Campo", group: "B" },
+  { id: "m11", date: "4 Giugno", time: "21:00", home: "RP Team", away: "Mirabellarum Robur", field: "Campo", group: "A" },
 
-  // 4 Giugno
-  { id: "m12", date: "4 Giugno", time: "19:00", home: "Bar in Piazza", away: "RP Gold Team", field: "Campo", group: "B" },
-  { id: "m13", date: "4 Giugno", time: "20:00", home: "Zetaquadro Bar", away: "Red Wolves", field: "Campo", group: "B" },
-  { id: "m14", date: "4 Giugno", time: "21:00", home: "RP Team", away: "Team DR", field: "Campo", group: "A" },
+  // 5 Giugno Venerdì
+  { id: "m12", date: "5 Giugno", time: "19:00", home: "Monteleone", away: "FC Orsa Maggiore", field: "Campo", group: "A" },
+  { id: "m13", date: "5 Giugno", time: "20:00", home: "Red Wolves", away: "HP", field: "Campo", group: "B" },
+  { id: "m14", date: "5 Giugno", time: "21:00", home: "Monteleone", away: "Mirabellarum Robur", field: "Campo", group: "A" },
 
-  // 5 Giugno
-  { id: "m15", date: "5 Giugno", time: "19:00", home: "Monteleone", away: "Mirabellarum Robur", field: "Campo", group: "A" },
-  { id: "m16", date: "5 Giugno", time: "20:00", home: "Zetaquadro Bar", away: "Bar in Piazza", field: "Campo", group: "B" },
-  { id: "m17", date: "5 Giugno", time: "21:00", home: "Red Wolves", away: "HP", field: "Campo", group: "B" },
+  // 6 Giugno Sabato
+  { id: "m15", date: "6 Giugno", time: "19:00", home: "RP Team", away: "Team DR", field: "Campo", group: "A" },
+  { id: "m16", date: "6 Giugno", time: "20:00", home: "Zetaquadro Bar", away: "Bar in Piazza", field: "Campo", group: "B" },
+  { id: "m17", date: "6 Giugno", time: "21:00", home: "RP Gold Team", away: "HP", field: "Campo", group: "B" },
 
-  // 6 Giugno
-  { id: "m18", date: "6 Giugno", time: "19:00", home: "Red Wolves", away: "RP Gold Team", field: "Campo", group: "B" },
-  { id: "m19", date: "6 Giugno", time: "20:00", home: "Team DR", away: "Monteleone", field: "Campo", group: "A" },
-  { id: "m20", date: "6 Giugno", time: "21:00", home: "FC Orsa Maggiore", away: "Mirabellarum Robur", field: "Campo", group: "A" },
+  // 8 Giugno Lunedi
+  { id: "m18", date: "8 Giugno", time: "19:00", home: "Red Wolves", away: "RP Gold Team", field: "Campo", group: "B" },
+  { id: "m19", date: "8 Giugno", time: "20:00", home: "Team DR", away: "Monteleone", field: "Campo", group: "A" },
+  { id: "m20", date: "8 Giugno", time: "21:00", home: "FC Orsa Maggiore", away: "Mirabellarum Robur", field: "Campo", group: "A" },
 ];
 
 function initializeFirebase() {
@@ -472,7 +501,7 @@ async function renderLastDayIfPresent(results = null) {
   lastDayMatches.forEach((match) => {
     const li = document.createElement("li");
     const result = getResultLabel(match, results);
-    li.textContent = `${match.home} vs ${match.away} — ${result}`;
+    li.textContent = `${formatMatchDateWithWeekday(match.date)} ${match.time} — ${match.home} vs ${match.away} — ${result}`;
     list.appendChild(li);
   });
 }
@@ -509,7 +538,7 @@ async function renderNextDayIfPresent(results = null) {
   
   nextMatches.forEach((match) => {
     const li = document.createElement("li");
-    li.textContent = `${match.date} ${match.time} — ${match.home} vs ${match.away}`;
+    li.textContent = `${formatMatchDateWithWeekday(match.date)} ${match.time} — ${match.home} vs ${match.away}`;
     list.appendChild(li);
   });
 }
@@ -523,7 +552,7 @@ async function renderCalendarIfPresent() {
     MATCHES.forEach((match) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${match.date}</td>
+        <td>${formatMatchDateWithWeekday(match.date)}</td>
         <td>${match.time}</td>
         <td>${match.home} vs ${match.away}</td>
         <td class="calendar-result">${getResultLabel(match, results)}</td>
@@ -546,7 +575,7 @@ async function renderCalendarIfPresent() {
     block.className = "panel";
     const header = document.createElement("div");
     header.className = "panel-header";
-    header.textContent = date;
+    header.textContent = formatMatchDateWithWeekday(date);
     const body = document.createElement("div");
     body.className = "panel-body";
     const table = document.createElement("table");
@@ -714,59 +743,56 @@ async function renderFinalPhaseIfPresent() {
     <div class="final-bracket">
       <!-- Column 1: top->down A1, A2, B1, B2 -->
       <div class="bracket-node col-initial col-initial-down" style="grid-column:1; grid-row:1;">
-        <div class="match-date">Lunedì 8 Giugno Ore 20:00</div>
+        <div class="match-date">TBD</div>
         <span class="match-title">Spareggio A - Gara 1</span>
         <strong>${quarterB1}</strong>
       </div>
       <div class="bracket-node col-initial col-initial-up" style="grid-column:1; grid-row:2;">
-        <div class="match-date">Martedì 9 Giugno Ore 20:00</div>
+        <div class="match-date">TBD</div>
         <span class="match-title">Spareggio A - Gara 2</span>
         <strong>${quarterB2}</strong>
       </div>
       <div class="bracket-node col-initial col-initial-down" style="grid-column:1; grid-row:3;">
-        <div class="match-date">Lunedi 8 Giugno Ore 21:00</div>
+        <div class="match-date">TBD</div>
         <span class="match-title">Spareggio B - Gara 1</span>
         <strong>${quarterA1}</strong>
       </div>
       <div class="bracket-node col-initial col-initial-up" style="grid-column:1; grid-row:4;">
-        <div class="match-date">Martedì 9 Giugno Ore 21:00</div>
+        <div class="match-date">TBD</div>
         <span class="match-title">Spareggio B - Gara 2</span>
         <strong>${quarterA2}</strong>
       </div>
 
       <!-- Column 2: Spareggio finals centered between pairs -->
       <div class="bracket-node col-playoff col-playoff-down" style="grid-column:2; grid-row:1 / 3;">
-        <div class="match-date">Mercoledì 10 Giugno Ore 20:00</div>
+        <div class="match-date">TBD</div>
         <span class="match-title">Spareggio A - Finale</span>
         <strong>Vincente Gara 1 vs Vincente Gara 2</strong>
       </div>
       <div class="bracket-node col-playoff col-playoff-up" style="grid-column:2; grid-row:3 / 5;">
-        <div class="match-date">Mercoledì 10 Giugno Ore 21:00</div>
+        <div class="match-date">TBD</div>
         <span class="match-title">Spareggio B - Finale</span>
         <strong>Vincente Gara 1 vs Vincente Gara 2</strong>
       </div>
 
       <!-- Column 3: Semifinali -->
       <div class="bracket-node col-semi col-semi-down" style="grid-column:3; grid-row:2;">
-        <div class="match-date">Venerdì 12 Giugno Ore 20:00</div>
+        <div class="match-date">TBD</div>
         <span class="match-title">Semifinale 1</span>
         <strong>${finalA1} vs Vincente Spareggio A</strong>
       </div>
       <div class="bracket-node col-semi col-semi-up" style="grid-column:3; grid-row:3;">
-        <div class="match-date">Venerdì 12 Giugno Ore 21:00</div>
+        <div class="match-date">TBD</div>
         <span class="match-title">Semifinale 2</span>
         <strong>${finalB1} vs Vincente Spareggio B</strong>
       </div>
 
       <!-- Column 4: Finale centered between semifinals -->
       <div class="bracket-node col-final final-node" style="grid-column:4; grid-row:2 / 4;">
-        <div class="match-date">Sabato 13 Giugno Ore 21:00</div>
+        <div class="match-date">TBD</div>
         <span class="match-title">Finale</span>
         <strong>Vincente Semifinale 1 vs Vincente Semifinale 2</strong>
       </div>
-    </div>
-    <div class="final-phase-notes">
-      ${phaseComplete ? "" : "<p class=\"muted\">Attendi il completamento di tutte le partite dei gironi per vedere i nomi definitivi delle squadre.</p>"}
     </div>
   `;
 }
@@ -778,7 +804,7 @@ async function renderPlayerRankingsIfPresent() {
   tbody.innerHTML = "";
   if (rankings.length === 0) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="5">Nessuna statistica giocatori inserita.</td>`;
+    tr.innerHTML = `<td colspan="6">Nessuna statistica giocatori inserita.</td>`;
     tbody.appendChild(tr);
     return;
   }
@@ -967,7 +993,7 @@ async function renderAdminMatches() {
     row.className = "admin-match-row collapsed";
     const result = getMatchResult(results, match.id);
     row.innerHTML = `
-      <div class="admin-match-title">${match.date} ${match.time} · ${match.home} vs ${match.away}</div>
+      <div class="admin-match-title">${formatMatchDateWithWeekday(match.date)} ${match.time} · ${match.home} vs ${match.away}</div>
       <div class="admin-match-body">
         <div class="score-grid">
           <div>

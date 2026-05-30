@@ -383,6 +383,27 @@ a:hover {
   width: 100% !important;
   min-height: 360px !important;
 }
+
+/* Prevent Instagram embeds from causing horizontal overflow on small screens */
+.insta-card {
+  width: 100%;
+  max-width: 480px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.insta-embed {
+  padding: 0.75rem;
+  overflow: hidden;
+}
+.insta-embed blockquote.instagram-media,
+.insta-embed iframe {
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+.insta-embed iframe {
+  min-width: 0 !important;
+}
 @media (max-width: 860px) {
   .instagram-grid {
     grid-template-columns: 1fr;
@@ -454,13 +475,13 @@ a:hover {
   font-size: 1.15rem;
   border-bottom: 1px solid rgba(255,255,255,0.04);
 }
-.panel .panel-body { padding: 0.8rem; color: #e9eef6; }
+.panel .panel-body { padding: 0.5rem; color: #e9eef6; }
 
 /* Team list with logo and placeholder photo */
-.team-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.6rem; }
-.team-row { display: flex; align-items: center; gap: 0.8rem; padding: 0.45rem 0; border-bottom: 1px dashed rgba(255,255,255,0.03); }
-.team-logo { width: 40px; height: 40px; object-fit: contain; border-radius: 6px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.03); }
-.team-name { font-weight: 700; color: #f3f7ff; flex: 1; }
+.team-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.3rem; }
+.team-row { display: flex; align-items: center; justify-content: center; gap: 0.6rem; padding: 0.25rem 0; border-bottom: 1px dashed rgba(255,255,255,0.03); }
+.team-logo { width: 38px; height: 38px; object-fit: contain; border-radius: 6px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.03); flex-shrink: 0; }
+.team-name { font-weight: 700; color: #f3f7ff; font-size: 0.98rem; }
 .team-photo { width: 120px; height: 70px; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.04); border-radius: 6px; }
 .hero-link-card {
   text-decoration: none;
