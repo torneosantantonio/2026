@@ -82,7 +82,7 @@ const MATCHES = [
   { id: "m8", date: "29 Maggio", time: "21:00", home: "FC Orsa Maggiore", away: "Team DR", field: "Campo", group: "A" },
 
   // 4 Giugno Giovedì
-  { id: "m9", date: "4 Giugno", time: "19:00", home: "Red Wolves", away: "HP", field: "Campo", group: "B" },
+  { id: "m9", date: "4 Giugno", time: "19:00", home: "Red Wolves", away: "RP Gold Team", field: "Campo", group: "B" },
   { id: "m10", date: "4 Giugno", time: "20:00", home: "Team DR", away: "Monteleone", field: "Campo", group: "A" },
   { id: "m11", date: "4 Giugno", time: "21:00", home: "FC Orsa Maggiore", away: "Mirabellarum Robur", field: "Campo", group: "A" },
 
@@ -97,7 +97,7 @@ const MATCHES = [
   // 10 Giugno Mercoledì
   { id: "m16", date: "10 Giugno", time: "19:00", home: "RP Team", away: "Mirabellarum Robur", field: "Campo", group: "A" },
   { id: "m17", date: "10 Giugno", time: "20:00", home: "Zetaquadro Bar", away: "Bar in Piazza", field: "Campo", group: "B" },
-  { id: "m18", date: "10 Giugno", time: "21:00", home: "Red Wolves", away: "RP Gold Team", field: "Campo", group: "B" },
+  { id: "m18", date: "10 Giugno", time: "21:00", home: "Red Wolves", away: "HP", field: "Campo", group: "B" },
 
   // 12 Giugno Venerdì
   { id: "m19", date: "12 Giugno", time: "20:00", home: "Bar in Piazza", away: "RP Gold Team", field: "Campo", group: "B" },
