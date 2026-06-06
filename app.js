@@ -86,8 +86,8 @@ const MATCHES = [
   { id: "m10", date: "4 Giugno", time: "20:30", home: "FC Orsa Maggiore", away: "Mirabellarum Robur", field: "Campo", group: "A" },
 
   // 6 Giugno Sabato
-  { id: "m11", date: "6 Giugno", time: "19:30", home: "RP Team", away: "Team DR", field: "Campo", group: "A" },
-  { id: "m12", date: "6 Giugno", time: "20:30", home: "Monteleone", away: "FC Orsa Maggiore", field: "Campo", group: "A" },
+  { id: "m11", date: "6 Giugno", time: "19:30", home: "Monteleone", away: "FC Orsa Maggiore", field: "Campo", group: "A" },
+  { id: "m12", date: "6 Giugno", time: "20:30", home: "RP Team", away: "Team DR", field: "Campo", group: "A" },
 
   // 8 Giugno Lunedi
   { id: "m13", date: "8 Giugno", time: "19:30", home: "Monteleone", away: "Mirabellarum Robur", field: "Campo", group: "A" },
