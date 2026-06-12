@@ -104,6 +104,20 @@ const MATCHES = [
   { id: "m20", date: "12 Giugno", time: "21:00", home: "Zetaquadro Bar", away: "Red Wolves", field: "Campo", group: "B" },
 ];
 
+const FINAL_PHASE_MATCHES = [
+  { id: "qA1", date: "TBD", time: "TBD", home: "2° Girone A", away: "5° Girone B", title: "Spareggio A - Gara 1" },
+  { id: "qA2", date: "TBD", time: "TBD", home: "3° Girone A", away: "4° Girone B", title: "Spareggio A - Gara 2" },
+  { id: "qAF", date: "TBD", time: "TBD", home: "Vincente Gara 1", away: "Vincente Gara 2", title: "Spareggio A - Finale" },
+  { id: "qB1", date: "TBD", time: "TBD", home: "2° Girone B", away: "5° Girone A", title: "Spareggio B - Gara 1" },
+  { id: "qB2", date: "TBD", time: "TBD", home: "3° Girone B", away: "4° Girone A", title: "Spareggio B - Gara 2" },
+  { id: "qBF", date: "TBD", time: "TBD", home: "Vincente Gara 1", away: "Vincente Gara 2", title: "Spareggio B - Finale" },
+  { id: "sA", date: "TBD", time: "TBD", home: "1° Girone A", away: "Vincente Spareggio A - Finale", title: "Semifinale 1" },
+  { id: "sB", date: "TBD", time: "TBD", home: "1° Girone B", away: "Vincente Spareggio B - Finale", title: "Semifinale 2" },
+  { id: "f", date: "TBD", time: "TBD", home: "Vincente Semifinale 1", away: "Vincente Semifinale 2", title: "Finale" },
+];
+
+const ALL_MATCHES = [...MATCHES, ...FINAL_PHASE_MATCHES];
+
 function initializeFirebase() {
   if (firebaseReady) return true;
   if (typeof firebase === "undefined") return false;
@@ -296,7 +310,7 @@ async function upsertResult(matchId, homeGoals, awayGoals, homeRedCards = 0, hom
 function computeGlobalPlayerStats(results) {
   const playerStats = {};
   if (!results || typeof results !== 'object') return playerStats;
-  MATCHES.forEach((match) => {
+  ALL_MATCHES.forEach((match) => {
     const res = results[match.id];
     if (!res || !res.playerEvents) return;
     ["home", "away"].forEach((side) => {
@@ -516,11 +530,12 @@ async function renderNextDayIfPresent(results = null) {
     results = await loadResults();
   }
   
+  const sourceMatches = ALL_MATCHES;
   console.log("renderNextDayIfPresent - results:", results);
-  console.log("renderNextDayIfPresent - MATCHES:", MATCHES.map(m => ({ id: m.id, date: m.date, hasResult: !!results[m.id] })));
+  console.log("renderNextDayIfPresent - matches:", sourceMatches.map(m => ({ id: m.id, date: m.date, hasResult: !!results[m.id] })));
   
   // Find the first match without results
-  const firstMatchWithoutResult = MATCHES.find(m => !results[m.id]);
+  const firstMatchWithoutResult = sourceMatches.find(m => !results[m.id]);
   
   console.log("firstMatchWithoutResult:", firstMatchWithoutResult);
   
@@ -533,7 +548,7 @@ async function renderNextDayIfPresent(results = null) {
   
   // Get all matches from the same date as the first match without results
   const nextDate = firstMatchWithoutResult.date;
-  const nextMatches = MATCHES.filter(m => m.date === nextDate && !results[m.id]);
+  const nextMatches = sourceMatches.filter(m => m.date === nextDate && !results[m.id]);
   
   console.log("nextDate:", nextDate);
   console.log("nextMatches:", nextMatches);
@@ -734,66 +749,117 @@ async function renderFinalPhaseIfPresent() {
   const [a1, a2, a3, a4, a5] = groupA;
   const [b1, b2, b3, b4, b5] = groupB;
 
-  const quarterA1 = phaseComplete ? `${a2?.team || "2° Girone A"} vs ${b5?.team || "5° Girone B"}` : "2° Girone A vs 5° Girone B";
-  const quarterA2 = phaseComplete ? `${a3?.team || "3° Girone A"} vs ${b4?.team || "4° Girone B"}` : "3° Girone A vs 4° Girone B";
-  const quarterB1 = phaseComplete ? `${b2?.team || "2° Girone B"} vs ${a5?.team || "5° Girone A"}` : "2° Girone B vs 5° Girone A";
-  const quarterB2 = phaseComplete ? `${b3?.team || "3° Girone B"} vs ${a4?.team || "4° Girone A"}` : "3° Girone B vs 4° Girone A";
+  const matchData = {
+    qA1: {
+      title: "Spareggio A - Gara 1",
+      home: phaseComplete ? a2?.team || "2° Girone A" : "2° Girone A",
+      away: phaseComplete ? b5?.team || "5° Girone B" : "5° Girone B",
+    },
+    qA2: {
+      title: "Spareggio A - Gara 2",
+      home: phaseComplete ? a3?.team || "3° Girone A" : "3° Girone A",
+      away: phaseComplete ? b4?.team || "4° Girone B" : "4° Girone B",
+    },
+    qAF: {
+      title: "Spareggio A - Finale",
+      home: "Vincente Gara 1",
+      away: "Vincente Gara 2",
+    },
+    qB1: {
+      title: "Spareggio B - Gara 1",
+      home: phaseComplete ? b2?.team || "2° Girone B" : "2° Girone B",
+      away: phaseComplete ? a5?.team || "5° Girone A" : "5° Girone A",
+    },
+    qB2: {
+      title: "Spareggio B - Gara 2",
+      home: phaseComplete ? b3?.team || "3° Girone B" : "3° Girone B",
+      away: phaseComplete ? a4?.team || "4° Girone A" : "4° Girone A",
+    },
+    qBF: {
+      title: "Spareggio B - Finale",
+      home: "Vincente Gara 1",
+      away: "Vincente Gara 2",
+    },
+    sA: {
+      title: "Semifinale 1",
+      home: phaseComplete ? a1?.team || "1° Girone A" : "1° Girone A",
+      away: "Vincente Spareggio B - Finale",
+    },
+    sB: {
+      title: "Semifinale 2",
+      home: phaseComplete ? b1?.team || "1° Girone B" : "1° Girone B",
+      away: "Vincente Spareggio A - Finale",
+    },
+    f: {
+      title: "Finale",
+      home: "Vincente Semifinale 1",
+      away: "Vincente Semifinale 2",
+    },
+  };
 
-  const finalA1 = phaseComplete ? a1?.team || "1° Girone A" : "1° Girone A";
-  const finalB1 = phaseComplete ? b1?.team || "1° Girone B" : "1° Girone B";
+  function formatScore(matchId) {
+    const result = getMatchResult(results, matchId);
+    if (result.homeGoals === "" && result.awayGoals === "") {
+      return "Da giocare";
+    }
+    return `${result.homeGoals} - ${result.awayGoals}`;
+  }
+
   container.innerHTML = `
     <div class="final-bracket">
-      <!-- Column 1: top->down A1, A2, B1, B2 -->
       <div class="bracket-node col-initial col-initial-down" style="grid-column:1; grid-row:1;">
-        <div class="match-date">TBD</div>
-        <span class="match-title">Spareggio A - Gara 1</span>
-        <strong>${quarterB1}</strong>
+        <div class="match-date">Lunedì 15 ore 18:00</div>
+        <span class="match-title">${matchData.qA1.title}</span>
+        <strong>${matchData.qA1.home} vs ${matchData.qA1.away}</strong>
+        <div class="match-score">${formatScore("qA1")}</div>
       </div>
       <div class="bracket-node col-initial col-initial-up" style="grid-column:1; grid-row:2;">
-        <div class="match-date">TBD</div>
-        <span class="match-title">Spareggio A - Gara 2</span>
-        <strong>${quarterB2}</strong>
+        <div class="match-date">Lunedì 15 ore 19:00</div>
+        <span class="match-title">${matchData.qA2.title}</span>
+        <strong>${matchData.qA2.home} vs ${matchData.qA2.away}</strong>
+        <div class="match-score">${formatScore("qA2")}</div>
       </div>
       <div class="bracket-node col-initial col-initial-down" style="grid-column:1; grid-row:3;">
-        <div class="match-date">TBD</div>
-        <span class="match-title">Spareggio B - Gara 1</span>
-        <strong>${quarterA1}</strong>
+        <div class="match-date">Lunedì 15 ore 20:00</div>
+        <span class="match-title">${matchData.qB1.title}</span>
+        <strong>${matchData.qB1.home} vs ${matchData.qB1.away}</strong>
+        <div class="match-score">${formatScore("qB1")}</div>
       </div>
       <div class="bracket-node col-initial col-initial-up" style="grid-column:1; grid-row:4;">
-        <div class="match-date">TBD</div>
-        <span class="match-title">Spareggio B - Gara 2</span>
-        <strong>${quarterA2}</strong>
+        <div class="match-date">Lunedì 15 ore 21:00</div>
+        <span class="match-title">${matchData.qB2.title}</span>
+        <strong>${matchData.qB2.home} vs ${matchData.qB2.away}</strong>
+        <div class="match-score">${formatScore("qB2")}</div>
       </div>
-
-      <!-- Column 2: Spareggio finals centered between pairs -->
       <div class="bracket-node col-playoff col-playoff-down" style="grid-column:2; grid-row:1 / 3;">
-        <div class="match-date">TBD</div>
-        <span class="match-title">Spareggio A - Finale</span>
-        <strong>Vincente Gara 1 vs Vincente Gara 2</strong>
+        <div class="match-date">Martedì 16 ore 19:30</div>
+        <span class="match-title">${matchData.qAF.title}</span>
+        <strong>${matchData.qAF.home} vs ${matchData.qAF.away}</strong>
+        <div class="match-score">${formatScore("qAF")}</div>
       </div>
       <div class="bracket-node col-playoff col-playoff-up" style="grid-column:2; grid-row:3 / 5;">
-        <div class="match-date">TBD</div>
-        <span class="match-title">Spareggio B - Finale</span>
-        <strong>Vincente Gara 1 vs Vincente Gara 2</strong>
+        <div class="match-date">Martedì 16 ore 20:30</div>
+        <span class="match-title">${matchData.qBF.title}</span>
+        <strong>${matchData.qBF.home} vs ${matchData.qBF.away}</strong>
+        <div class="match-score">${formatScore("qBF")}</div>
       </div>
-
-      <!-- Column 3: Semifinali -->
       <div class="bracket-node col-semi col-semi-down" style="grid-column:3; grid-row:2;">
-        <div class="match-date">TBD</div>
-        <span class="match-title">Semifinale 1</span>
-        <strong>${finalA1} vs Vincente Spareggio A</strong>
+        <div class="match-date">Giovedì 18 ore 19:30</div>
+        <span class="match-title">${matchData.sA.title}</span>
+        <strong>${matchData.sA.home} vs ${matchData.sA.away}</strong>
+        <div class="match-score">${formatScore("sA")}</div>
       </div>
       <div class="bracket-node col-semi col-semi-up" style="grid-column:3; grid-row:3;">
-        <div class="match-date">TBD</div>
-        <span class="match-title">Semifinale 2</span>
-        <strong>${finalB1} vs Vincente Spareggio B</strong>
+        <div class="match-date">Giovedì 18 ore 20:30</div>
+        <span class="match-title">${matchData.sB.title}</span>
+        <strong>${matchData.sB.home} vs ${matchData.sB.away}</strong>
+        <div class="match-score">${formatScore("sB")}</div>
       </div>
-
-      <!-- Column 4: Finale centered between semifinals -->
       <div class="bracket-node col-final final-node" style="grid-column:4; grid-row:2 / 4;">
-        <div class="match-date">TBD</div>
-        <span class="match-title">Finale</span>
-        <strong>Vincente Semifinale 1 vs Vincente Semifinale 2</strong>
+        <div class="match-date">Sabato 20 ore 21:00</div>
+        <span class="match-title">${matchData.f.title}</span>
+        <strong>${matchData.f.home} vs ${matchData.f.away}</strong>
+        <div class="match-score">${formatScore("f")}</div>
       </div>
     </div>
   `;
@@ -990,12 +1056,12 @@ async function renderAdminMatches() {
   if (!adminMatches) return;
   const results = await loadResults();
   adminMatches.innerHTML = "";
-  MATCHES.filter((m) => m.editable !== false).forEach((match) => {
+  ALL_MATCHES.filter((m) => m.editable !== false).forEach((match) => {
     const row = document.createElement("div");
     row.className = "admin-match-row collapsed";
     const result = getMatchResult(results, match.id);
     row.innerHTML = `
-      <div class="admin-match-title">${formatMatchDateWithWeekday(match.date)} ${match.time} · ${match.home} vs ${match.away}</div>
+      <div class="admin-match-title">${formatMatchDateWithWeekday(match.date)} ${match.time} · ${match.title || `${match.home} vs ${match.away}`}</div>
       <div class="admin-match-body">
         <div class="score-grid">
           <div>
@@ -1133,6 +1199,7 @@ async function renderAdminMatches() {
       await renderStandingsIfPresent();
       await renderNextDayIfPresent(updatedResults);
       await renderPlayerRankingsIfPresent();
+      await renderFinalPhaseIfPresent();
     });
   });
 }
@@ -1248,7 +1315,8 @@ function setupResultsRealtimeSync() {
   const hasPlayerRanking = !!document.getElementById("player-rankings-body");
   const hasLastDay = !!document.getElementById("last-day-list");
   const hasNextDay = !!document.getElementById("next-day-list");
-  if (!hasCalendar && !hasStandings && !hasPlayerRanking && !hasLastDay && !hasNextDay) return;
+  const hasFinalPhase = !!document.getElementById("final-phase-container");
+  if (!hasCalendar && !hasStandings && !hasPlayerRanking && !hasLastDay && !hasNextDay && !hasFinalPhase) return;
   if (!initializeFirebase() || !db || typeof db.collection !== "function") return;
 
   db.collection("tournament").doc("results").onSnapshot(
@@ -1258,6 +1326,7 @@ function setupResultsRealtimeSync() {
       if (hasPlayerRanking) await renderPlayerRankingsIfPresent();
       if (hasLastDay) await renderLastDayIfPresent();
       if (hasNextDay) await renderNextDayIfPresent();
+      if (hasFinalPhase) await renderFinalPhaseIfPresent();
     },
     (error) => {
       console.warn("Realtime standings/calendar sync failed:", error);
