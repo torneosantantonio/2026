@@ -105,7 +105,7 @@ const MATCHES = [
 ];
 
 const FINAL_PHASE_MATCHES = [
-  { id: "qA1", date: "Lunedi 15 Giugno", time: "18:00", home: "2° Girone A", away: "5° Girone B", title: "Spareggio A - Gara 1" },
+  { id: "qA1", date: "Lunedi 15 Giugno", time: "22:00", home: "2° Girone A", away: "5° Girone B", title: "Spareggio A - Gara 1" },
   { id: "qA2", date: "Lunedi 15 Giugno", time: "19:00", home: "3° Girone A", away: "4° Girone B", title: "Spareggio A - Gara 2" },
   { id: "qAF", date: "Martedì 16 Giugno", time: "19:30", home: "Vincente Gara 1", away: "Vincente Gara 2", title: "Spareggio A - Finale" },
   { id: "qB1", date: "Lunedi 15 Giugno", time: "20:00", home: "2° Girone B", away: "5° Girone A", title: "Spareggio B - Gara 1" },
@@ -535,7 +535,7 @@ async function renderLastDayIfPresent(results = null) {
   
   console.log("lastDayMatches:", lastDayMatches);
   
-  lastDayMatches.forEach((match) => {
+  lastDayMatches.sort((a, b) => a.time.localeCompare(b.time)).forEach((match) => {
     list.appendChild(createMatchItemElement(match, results, true));
   });
 }
@@ -571,7 +571,7 @@ async function renderNextDayIfPresent(results = null) {
   console.log("nextDate:", nextDate);
   console.log("nextMatches:", nextMatches);
   
-  nextMatches.forEach((match) => {
+  nextMatches.sort((a, b) => a.time.localeCompare(b.time)).forEach((match) => {
     list.appendChild(createMatchItemElement(match, results, false));
   });
 }
@@ -822,7 +822,7 @@ async function renderFinalPhaseIfPresent() {
   container.innerHTML = `
     <div class="final-bracket">
       <div class="bracket-node col-initial col-initial-down" style="grid-column:1; grid-row:1;">
-        <div class="match-date">Lunedì 15 ore 18:00</div>
+        <div class="match-date">Lunedì 15 ore 22:00</div>
         <span class="match-title">${matchData.qA1.title}</span>
         <strong>${matchData.qA1.home} <span class="vs">vs</span> ${matchData.qA1.away}</strong>
         <div class="match-score">${formatScore("qA1")}</div>
