@@ -756,6 +756,16 @@ function areGroupStageMatchesComplete(results) {
   });
 }
 
+function getMatchWinner(results, matchId, homeName, awayName) {
+  const result = results && results[matchId];
+  if (!result || typeof result.homeGoals !== 'number' || typeof result.awayGoals !== 'number') {
+    return null;
+  }
+  if (result.homeGoals > result.awayGoals) return homeName;
+  if (result.homeGoals < result.awayGoals) return awayName;
+  return null;
+}
+
 function getFinalPhaseMatches(results) {
   results = results || {};
   const standings = computeStandings(results);
@@ -765,41 +775,83 @@ function getFinalPhaseMatches(results) {
   const [a1, a2, a3, a4, a5] = groupA;
   const [b1, b2, b3, b4, b5] = groupB;
 
+  const qA1Home = phaseComplete ? a2?.team || "Vincente Gara 1" : "Vincente Gara 1";
+  const qA1Away = phaseComplete ? b5?.team || "Vincente Gara 1" : "Vincente Gara 1";
+  const qA2Home = phaseComplete ? a3?.team || "Vincente Gara 2" : "Vincente Gara 2";
+  const qA2Away = phaseComplete ? b4?.team || "Vincente Gara 2" : "Vincente Gara 2";
+  const qB1Home = phaseComplete ? b2?.team || "Vincente Gara 1" : "Vincente Gara 1";
+  const qB1Away = phaseComplete ? a5?.team || "Vincente Gara 1" : "Vincente Gara 1";
+  const qB2Home = phaseComplete ? b3?.team || "Vincente Gara 2" : "Vincente Gara 2";
+  const qB2Away = phaseComplete ? a4?.team || "Vincente Gara 2" : "Vincente Gara 2";
+
+  const qAFHome = getMatchWinner(results, "qA1", qA1Home, qA1Away) || "Vincente Gara 1";
+  const qAFAway = getMatchWinner(results, "qA2", qA2Home, qA2Away) || "Vincente Gara 2";
+  const qBFHome = getMatchWinner(results, "qB1", qB1Home, qB1Away) || "Vincente Gara 1";
+  const qBFAway = getMatchWinner(results, "qB2", qB2Home, qB2Away) || "Vincente Gara 2";
+
+  const sAHome = phaseComplete ? a1?.team || "Team DR" : "Team DR";
+  const sAAway = getMatchWinner(results, "qBF", qBFHome, qBFAway) || "Vincente Spareggio B - Finale";
+  const sBHome = phaseComplete ? b1?.team || "RP Gold Team" : "RP Gold Team";
+  const sBAway = getMatchWinner(results, "qAF", qAFHome, qAFAway) || "Vincente Spareggio A - Finale";
+
+  const fHome = getMatchWinner(results, "sA", sAHome, sAAway) || "Vincente Semifinale 1";
+  const fAway = getMatchWinner(results, "sB", sBHome, sBAway) || "Vincente Semifinale 2";
+
   return FINAL_PHASE_MATCHES.map((match) => {
     switch (match.id) {
       case "qA1":
         return {
           ...match,
-          home: phaseComplete ? a2?.team || match.home : match.home,
-          away: phaseComplete ? b5?.team || match.away : match.away,
+          home: qA1Home,
+          away: qA1Away,
         };
       case "qA2":
         return {
           ...match,
-          home: phaseComplete ? a3?.team || match.home : match.home,
-          away: phaseComplete ? b4?.team || match.away : match.away,
+          home: qA2Home,
+          away: qA2Away,
         };
       case "qB1":
         return {
           ...match,
-          home: phaseComplete ? b2?.team || match.home : match.home,
-          away: phaseComplete ? a5?.team || match.away : match.away,
+          home: qB1Home,
+          away: qB1Away,
         };
       case "qB2":
         return {
           ...match,
-          home: phaseComplete ? b3?.team || match.home : match.home,
-          away: phaseComplete ? a4?.team || match.away : match.away,
+          home: qB2Home,
+          away: qB2Away,
+        };
+      case "qAF":
+        return {
+          ...match,
+          home: qAFHome,
+          away: qAFAway,
+        };
+      case "qBF":
+        return {
+          ...match,
+          home: qBFHome,
+          away: qBFAway,
         };
       case "sA":
         return {
           ...match,
-          home: phaseComplete ? a1?.team || match.home : match.home,
+          home: sAHome,
+          away: sAAway,
         };
       case "sB":
         return {
           ...match,
-          home: phaseComplete ? b1?.team || match.home : match.home,
+          home: sBHome,
+          away: sBAway,
+        };
+      case "f":
+        return {
+          ...match,
+          home: fHome,
+          away: fAway,
         };
       default:
         return match;
