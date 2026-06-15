@@ -105,14 +105,14 @@ const MATCHES = [
 ];
 
 const FINAL_PHASE_MATCHES = [
-  { id: "qA1", date: "Lunedi 15 Giugno", time: "22:00", home: "2° Girone A", away: "5° Girone B", title: "Spareggio A - Gara 1" },
-  { id: "qA2", date: "Lunedi 15 Giugno", time: "19:00", home: "3° Girone A", away: "4° Girone B", title: "Spareggio A - Gara 2" },
+  { id: "qA1", date: "Lunedi 15 Giugno", time: "22:00", home: "Mirebellarum Robur", away: "Bar in Piazza", title: "Spareggio A - Gara 1" },
+  { id: "qA2", date: "Lunedi 15 Giugno", time: "19:00", home: "Monteleone", away: "Red Wolves", title: "Spareggio A - Gara 2" },
+  { id: "qB1", date: "Lunedi 15 Giugno", time: "20:00", home: "HP", away: "RP Team", title: "Spareggio B - Gara 1" },
+  { id: "qB2", date: "Lunedi 15 Giugno", time: "21:00", home: "Zetaquadro Bar", away: "FC Orsa Maggiore", title: "Spareggio B - Gara 2" },
   { id: "qAF", date: "Martedì 16 Giugno", time: "19:30", home: "Vincente Gara 1", away: "Vincente Gara 2", title: "Spareggio A - Finale" },
-  { id: "qB1", date: "Lunedi 15 Giugno", time: "20:00", home: "2° Girone B", away: "5° Girone A", title: "Spareggio B - Gara 1" },
-  { id: "qB2", date: "Lunedi 15 Giugno", time: "21:00", home: "3° Girone B", away: "4° Girone A", title: "Spareggio B - Gara 2" },
   { id: "qBF", date: "Martedì 16 Giugno", time: "20:30", home: "Vincente Gara 1", away: "Vincente Gara 2", title: "Spareggio B - Finale" },
-  { id: "sA", date: "Giovedì 18 Giugno", time: "19:30", home: "1° Girone A", away: "Vincente Spareggio A - Finale", title: "Semifinale 1" },
-  { id: "sB", date: "Giovedì 18 Giugno", time: "20:30", home: "1° Girone B", away: "Vincente Spareggio B - Finale", title: "Semifinale 2" },
+  { id: "sB", date: "Giovedì 18 Giugno", time: "20:30", home: "RP Gold Team", away: "Vincente Spareggio B - Finale", title: "Semifinale 2" },
+  { id: "sA", date: "Giovedì 18 Giugno", time: "19:30", home: "Team DR", away: "Vincente Spareggio A - Finale", title: "Semifinale 1" },
   { id: "f", date: "Sabato 20 Giugno", time: "21:00", home: "Vincente Semifinale 1", away: "Vincente Semifinale 2", title: "Finale" },
 ];
 
