@@ -111,8 +111,8 @@ const FINAL_PHASE_MATCHES = [
   { id: "qB2", date: "Lunedi 15 Giugno", time: "21:00", home: "Zetaquadro Bar", away: "FC Orsa Maggiore", title: "Spareggio B - Gara 2" },
   { id: "qAF", date: "Martedì 16 Giugno", time: "19:30", home: "Vincente Gara 1", away: "Vincente Gara 2", title: "Spareggio A - Finale" },
   { id: "qBF", date: "Martedì 16 Giugno", time: "20:30", home: "Vincente Gara 1", away: "Vincente Gara 2", title: "Spareggio B - Finale" },
-  { id: "sB", date: "Giovedì 18 Giugno", time: "20:30", home: "RP Gold Team", away: "Vincente Spareggio B - Finale", title: "Semifinale 2" },
-  { id: "sA", date: "Giovedì 18 Giugno", time: "19:30", home: "Team DR", away: "Vincente Spareggio A - Finale", title: "Semifinale 1" },
+  { id: "sB", date: "Giovedì 18 Giugno", time: "20:30", home: "RP Gold Team", away: "Vincente Spareggio A - Finale", title: "Semifinale 2" },
+  { id: "sA", date: "Giovedì 18 Giugno", time: "19:30", home: "Team DR", away: "Vincente Spareggio B - Finale", title: "Semifinale 1" },
   { id: "f", date: "Sabato 20 Giugno", time: "21:00", home: "Vincente Semifinale 1", away: "Vincente Semifinale 2", title: "Finale" },
 ];
 
@@ -358,7 +358,7 @@ function createMatchItemElement(match, results, isPlayed) {
   const li = document.createElement("li");
   li.className = "match-item";
   const formattedDate = formatMatchDateWithWeekday(match.date);
-  const resultLabel = isPlayed ? getResultLabel(match, results) : "In programma";
+  const resultLabel = isPlayed ? getResultLabel(match, results) : "—";
   const statusClass = isPlayed ? "played" : "pending";
   li.innerHTML = `
     <div class="match-header">
@@ -511,12 +511,13 @@ async function renderLastDayIfPresent(results = null) {
   }
   
   console.log("renderLastDayIfPresent - results:", results);
-  
+  // Consider both regular matches and final-phase matches
+  const sourceMatches = [...MATCHES, ...getFinalPhaseMatches(results)];
   // Find all matches with results
-  const matchesWithResults = MATCHES.filter(m => results[m.id]);
-  
+  const matchesWithResults = sourceMatches.filter(m => results[m.id]);
+
   console.log("matchesWithResults:", matchesWithResults);
-  
+
   if (matchesWithResults.length === 0) {
     const li = document.createElement("li");
     li.textContent = "Nessun risultato ancora disponibile";
@@ -524,17 +525,20 @@ async function renderLastDayIfPresent(results = null) {
     return;
   }
   
-  // Get the last match with result
-  const lastMatchWithResult = matchesWithResults[matchesWithResults.length - 1];
-  const lastDate = lastMatchWithResult.date;
-  
+  // Determine the last match with a result according to the sourceMatches ordering
+  let lastMatchWithResult = null;
+  for (const m of sourceMatches) {
+    if (results[m.id]) lastMatchWithResult = m;
+  }
+  const lastDate = lastMatchWithResult ? lastMatchWithResult.date : null;
+
   console.log("lastDate:", lastDate);
-  
-  // Get all matches from the same date as the last match with results, but only those with results
-  const lastDayMatches = MATCHES.filter(m => m.date === lastDate && results[m.id]);
-  
+
+  // Get all matches from the same date as the last match with results (including final phase), but only those with results
+  const lastDayMatches = sourceMatches.filter(m => m.date === lastDate && results[m.id]);
+
   console.log("lastDayMatches:", lastDayMatches);
-  
+
   lastDayMatches.sort((a, b) => a.time.localeCompare(b.time)).forEach((match) => {
     list.appendChild(createMatchItemElement(match, results, true));
   });
