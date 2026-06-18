@@ -111,8 +111,8 @@ const FINAL_PHASE_MATCHES = [
   { id: "qB2", date: "Lunedi 15 Giugno", time: "21:00", home: "Zetaquadro Bar", away: "FC Orsa Maggiore", title: "Spareggio B - Gara 2" },
   { id: "qAF", date: "Martedì 16 Giugno", time: "19:30", home: "Vincente Gara 1", away: "Vincente Gara 2", title: "Spareggio A - Finale" },
   { id: "qBF", date: "Martedì 16 Giugno", time: "20:30", home: "Vincente Gara 1", away: "Vincente Gara 2", title: "Spareggio B - Finale" },
-  { id: "sB", date: "Giovedì 18 Giugno", time: "20:30", home: "RP Gold Team", away: "Vincente Spareggio A - Finale", title: "Semifinale 2" },
-  { id: "sA", date: "Giovedì 18 Giugno", time: "19:30", home: "Team DR", away: "Vincente Spareggio B - Finale", title: "Semifinale 1" },
+  { id: "sB", date: "Giovedì 18 Giugno", time: "19:30", home: "RP Gold Team", away: "Vincente Spareggio A - Finale", title: "Semifinale 2" },
+  { id: "sA", date: "Giovedì 18 Giugno", time: "20:30", home: "Team DR", away: "Vincente Spareggio B - Finale", title: "Semifinale 1" },
   { id: "f", date: "Sabato 20 Giugno", time: "21:00", home: "Vincente Semifinale 1", away: "Vincente Semifinale 2", title: "Finale" },
 ];
 
