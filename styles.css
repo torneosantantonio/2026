@@ -483,6 +483,29 @@ a:hover {
 .insta-embed iframe {
   min-width: 0 !important;
 }
+/* Compact caption for events */
+.insta-caption {
+  padding: 0.65rem 0.9rem 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.18;
+  color: #f3f6ff;
+}
+.insta-caption .event-host {
+  margin: 0 0 0.25rem;
+  font-weight: 700;
+  color: #ffd66d;
+}
+.insta-caption .event-name {
+  margin: 0 0 0.25rem;
+  font-weight: 700;
+}
+.insta-caption .event-meta,
+.insta-caption .event-guests {
+  margin: 0 0 0.15rem;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+.insta-card h3 { margin-top: 0.6rem; }
 @media (max-width: 860px) {
   .instagram-grid {
     grid-template-columns: 1fr;
@@ -743,6 +766,12 @@ a:hover {
   /* gold for final */
   background: linear-gradient(180deg, rgba(255, 216, 118, 0.16), rgba(36, 58, 82, 0.95));
   border-color: rgba(255, 216, 118, 0.28);
+}
+
+/* Special color for the 1/2 final (championship) */
+.col-final.final-1-2 {
+  background: linear-gradient(180deg, rgba(220, 38, 38, 0.32), rgba(60, 20, 20, 0.98));
+  border-color: rgba(244, 63, 63, 0.48);
 }
 
 .col-final::before {
